@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MCB Portal | Login</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <style>
+        :root { 
+            --mcb-blue: #1a237e; 
+            --mcb-accent: #3949ab;
+        }
+
+        body { 
+            background: linear-gradient(135deg, #1a237e 0%, #000051 100%);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', sans-serif;
+            overflow: hidden;
+        }
+
+        .auth-container {
+            width: 400px;
+            perspective: 1000px;
+            position: relative;
+        }
+
+        .auth-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 40px;
+            border-radius: 25px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        /* Slide Animation Logic */
+        .auth-container.register-mode .login-form { display: none; }
+        .auth-container:not(.register-mode) .register-form { display: none; }
+
+        .form-control, .form-select {
+            border-radius: 10px;
+            padding: 12px;
+            border: 1px solid #ddd;
+            margin-bottom: 5px;
+        }
+
+        /* Password Wrapper for Eye Icon */
+        .pass-group { position: relative; }
+        .toggle-btn {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #666;
+            z-index: 10;
+        }
+
+        .btn-mcb {
+            background: var(--mcb-blue);
+            color: white;
+            border-radius: 10px;
+            padding: 12px;
+            font-weight: 600;
+            width: 100%;
+            transition: 0.3s;
+            border: none;
+        }
+
+        .btn-mcb:hover {
+            background: var(--mcb-accent);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(26, 35, 126, 0.3);
+        }
+
+        .role-badge {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--mcb-blue);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .password-note {
+            font-size: 0.75rem;
+            color: #666;
+            margin-top: 5px;
+            line-height: 1.4;
+        }
+
+        .link-text {
+            color: var(--mcb-blue);
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .brand-logo {
+            font-size: 2rem;
+            font-weight: 900;
+            color: var(--mcb-blue);
+            text-align: center;
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="auth-container" id="authContainer">
+        <div class="auth-card login-form shadow-lg">
+            <div class="brand-logo">🛡️ MCB Portal</div>
+            <form id="loginForm">
+                <div class="mb-3">
+                    <label class="role-badge mb-1">Select Role</label>
+                    <select class="form-select" id="loginRole" required>
+                        <option value="user">User</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <input type="text" class="form-control" id="loginUser" placeholder="Username" required>
+                </div>
+                <div class="mb-3 pass-group">
+                    <input type="password" class="form-control" id="loginPass" placeholder="Password" required>
+                    <i class="fas fa-eye toggle-btn" onclick="togglePass('loginPass', this)"></i>
+                </div>
+                
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <input type="checkbox" id="remember">
+                        <label for="remember" style="font-size: 0.85rem;">Remember me</label>
+                    </div>
+                    <a href="javascript:void(0)" class="link-text" onclick="forgotPassword()">Forgot Password?</a>
+                </div>
+
+                <button type="submit" class="btn btn-mcb mb-3">Login</button>
+                <div class="text-center">
+                    <span class="small text-muted">Don't have an account?</span>
+                    <a href="javascript:void(0)" class="link-text ms-1" onclick="toggleForm()">Register Here</a>
+                </div>
+            </form>
+        </div>
+
+        <div class="auth-card register-form shadow-lg">
+            <div class="brand-logo">✨ Create Account</div>
+            <form id="registerForm">
+                <div class="mb-2">
+                    <label class="role-badge mb-1">Assign Role</label>
+                    <select class="form-select" id="regRole" required>
+                        <option value="user">User</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+                <div class="mb-2">
+                    <input type="text" class="form-control" id="regName" placeholder="Full Name" required>
+                </div>
+                <div class="mb-2">
+                    <input type="text" class="form-control" id="regUser" placeholder="Desired Username" required>
+                </div>
+                <div class="mb-1 pass-group">
+                    <input type="password" class="form-control" id="regPass" placeholder="Password" required>
+                    <i class="fas fa-eye toggle-btn" onclick="togglePass('regPass', this)"></i>
+                </div>
+                
+                <div class="password-note p-2 bg-light rounded border mb-3">
+                    <strong>Password Requirements:</strong><br>
+                    - Minimum 6 characters<br>
+                    - Role must match your designation
+                </div>
+
+                <button type="submit" class="btn btn-mcb mb-3">Submit Registration</button>
+                <div class="text-center">
+                    <a href="javascript:void(0)" class="link-text" onclick="toggleForm()">
+                        <i class="fas fa-arrow-left me-1"></i> Back to Login
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // CONFIGURATION
+        const SUPABASE_URL = 'https://syqormrqvpwnpvsdonhp.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN5cW9ybXJxdnB3bnB2c2RvbmhwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIxMjM1MjQsImV4cCI6MjA4NzY5OTUyNH0.naAQuZpAiAG1XFUmxb_XWYGlXgDltxlhT7N9m0Hq_yU';
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        function toggleForm() {
+            const container = document.getElementById('authContainer');
+            container.classList.toggle('register-mode');
+        }
+
+        // --- VIEW/HIDE PASSWORD ---
+        function togglePass(inputId, icon) {
+            const input = document.getElementById(inputId);
+            if (input.type === "password") {
+                input.type = "text";
+                icon.classList.replace("fa-eye", "fa-eye-slash");
+            } else {
+                input.type = "password";
+                icon.classList.replace("fa-eye-slash", "fa-eye");
+            }
+        }
+
+        // --- FORGOT PASSWORD FUNCTION ---
+        async function forgotPassword() {
+            const { value: formValues } = await Swal.fire({
+                title: 'Reset Password',
+                html:
+                    '<input id="swal-user" class="swal2-input" placeholder="Username">' +
+                    '<input id="swal-current" type="password" class="swal2-input" placeholder="Current Password">' +
+                    '<input id="swal-new" type="password" class="swal2-input" placeholder="New Password">',
+                focusConfirm: false,
+                showCancelButton: true,
+                confirmButtonText: 'Save',
+                confirmButtonColor: '#1a237e',
+                preConfirm: () => {
+                    return {
+                        user: document.getElementById('swal-user').value,
+                        current: document.getElementById('swal-current').value,
+                        new: document.getElementById('swal-new').value
+                    }
+                }
+            });
+
+            if (formValues) {
+                if (!formValues.user || !formValues.current || !formValues.new) {
+                    return Swal.fire('Error', 'Please fill all fields', 'error');
+                }
+
+                Swal.fire({ title: 'Updating...', didOpen: () => Swal.showLoading() });
+
+                // Check kung tama ang username at current password
+                const { data, error } = await _supabase
+                    .from('users')
+                    .select('*')
+                    .eq('username', formValues.user)
+                    .eq('password', formValues.current)
+                    .single();
+
+                if (error || !data) {
+                    Swal.fire('Failed', 'Username or Current Password incorrect.', 'error');
+                } else {
+                    // Update to new password
+                    const { error: upError } = await _supabase
+                        .from('users')
+                        .update({ password: formValues.new })
+                        .eq('username', formValues.user);
+
+                    if (upError) {
+                        Swal.fire('Error', upError.message, 'error');
+                    } else {
+                        Swal.fire('Success', 'Password updated! You can now login.', 'success');
+                    }
+                }
+            }
+        }
+
+        // --- LOGIN LOGIC ---
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const role = document.getElementById('loginRole').value;
+            const user = document.getElementById('loginUser').value;
+            const pass = document.getElementById('loginPass').value;
+
+            Swal.fire({ title: 'Authenticating...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+
+            const { data, error } = await _supabase
+                .from('users')
+                .select('*')
+                .eq('username', user)
+                .eq('password', pass)
+                .eq('role', role);
+
+            if (error || !data || data.length === 0) {
+                Swal.fire('Login Failed', 'Invalid username, password, or role choice.', 'error');
+            } else {
+                const userData = data[0];
+                localStorage.setItem('mcb_user', JSON.stringify(userData));
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Welcome, ' + userData.full_name,
+                    text: 'Redirecting to your dashboard...',
+                    timer: 1500,
+                    showConfirmButton: false
+                }).then(() => {
+                    if (userData.role === 'admin') {
+                        window.location.href = 'admin.html';
+                    } else {
+                        window.location.href = 'user.html';
+                    }
+                });
+            }
+        });
+
+        // --- REGISTER LOGIC ---
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const role = document.getElementById('regRole').value;
+            const name = document.getElementById('regName').value;
+            const user = document.getElementById('regUser').value;
+            const pass = document.getElementById('regPass').value;
+
+            Swal.fire({ title: 'Creating Account...', didOpen: () => Swal.showLoading(), allowOutsideClick: false });
+
+            const { error } = await _supabase
+                .from('users')
+                .insert([{ 
+                    full_name: name, 
+                    username: user, 
+                    password: pass, 
+                    role: role,
+                    status: 'active' 
+                }]);
+
+            if (error) {
+                Swal.fire('Error', error.message, 'error');
+            } else {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Registration Successful!',
+                    text: 'You can now log in.',
+                    confirmButtonColor: '#1a237e'
+                }).then(() => {
+                    toggleForm();
+                    document.getElementById('registerForm').reset();
+                });
+            }
+        });
+    </script>
+</body>
+</html>
