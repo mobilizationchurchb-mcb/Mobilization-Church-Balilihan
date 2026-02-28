@@ -1,25 +1,23 @@
 {
-      "short_name": "MCB Apps",
-        "name": "Mobilization Church Balilihan Admin",
-          "icons": [
-              {
-                    "src": "mcb.png",
-                          "sizes": "192x192",
-                                "type": "image/png",
-                                      "purpose": "any maskable"
-                                          },
-                                              {
-                                                    "src": "mcb.png",
-                                                          "sizes": "512x512",
-                                                                "type": "image/png"
-                                                                    }
-                                                                      ],
-                                                                        "start_url": "/index.html",
-                                                                          "background_color": "#ffffff",
-                                                                            "display": "standalone",
-                                                                              "scope": "/",
-                                                                                "theme_color": "#2563eb",
-                                                                                  "description": "MCB Admin Portal for Church Management"
-                                                                                  }
-                                                                                  
+  "short_name": "MCB Apps",
+  "name": "Mobilization Church Balilihan Admin",
+  "icons": [
+    {
+      "src": "mcb.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "mcb.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "start_url": "/index.html",
+  "background_color": "#ffffff",
+  "display": "standalone",
+  "scope": "/",
+  "theme_color": "#2563eb",
+  "description": "MCB Admin Portal for Church Management"
 }
