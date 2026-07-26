@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monthly Schedule - MCB</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Poppins', sans-serif; }
+        #main-content {
+            padding-top: 0 !important;
+            padding-bottom: 0 !important;
+        }
+
+        .program-card .card-text {
+            color: #000000;
+            font-weight: bold;
+        }
+        .detail-row {
+            display: flex;
+            align-items: baseline;
+            margin-bottom: 2px;
+            gap: 6px;
+        }
+        .detail-label {
+            font-weight: 600;
+            font-size: inherit;
+            color: inherit;
+            white-space: nowrap;
+        }
+        .detail-dotted {
+            flex: 1;
+            border-bottom: 1px dotted rgba(0,0,0,0.25);
+            margin: 0 4px;
+            align-self: flex-end;
+            min-width: 20px;
+        }
+        .detail-value {
+            font-weight: 500;
+            text-align: right;
+            white-space: nowrap;
+            color: inherit;
+        }
+
+        .paper-landscape-a4 { width: 297mm; height: 210mm; margin: 0 0 20px 0; padding: 10mm; box-sizing: border-box; background: #ffffff; }
+        .paper-landscape-short { width: 279mm; height: 216mm; margin: 0 0 20px 0; padding: 10mm; box-sizing: border-box; background: #ffffff; }
+        .paper-landscape-long { width: 330mm; height: 216mm; margin: 0 0 20px 0; padding: 12mm; box-sizing: border-box; background: #ffffff; }
+        .paper-landscape-legal { width: 356mm; height: 216mm; margin: 0 0 20px 0; padding: 12mm; box-sizing: border-box; background: #ffffff; }
+
+        .schedule-pages-wrapper {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            width: 100%;
+        }
+        .desktop-margin-right { margin-right: 2rem; }
+        .schedule-page {
+            position: relative;
+            overflow: hidden;
+            border: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .page-content {
+            position: relative;
+            z-index: 10;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 6mm;
+            text-align: center;
+            flex-wrap: wrap;
+        }
+        .header-logo {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #e2e8f0;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
+        .header-text { text-align: left; }
+        .header-text .main-title { font-size: 16px; font-weight: 800; color: #0f172a; margin: 0; }
+        .header-text .sub-title { font-size: 12px; font-weight: 600; color: #334155; margin: 2px 0; }
+        .header-text .month-info { font-size: 12px; font-weight: 600; color: #1e3a8a; margin-top: 2px; }
+        .card-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr;
+            width: 100%;
+            flex: 1;
+        }
+        .program-card {
+            background: rgba(255,255,255,0.85);
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 10px 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .page-footer {
+            text-align: center;
+            font-size: 11px;
+            color: #64748b;
+            font-weight: 600;
+            margin-top: 4mm;
+            padding: 2px 0;
+            border-top: 1px solid #e2e8f0;
+        }
+        .page-navigation {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        .page-navigation button {
+            background: white;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            padding: 6px 12px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .page-navigation button:hover:not(:disabled) { background: #f3f4f6; border-color: #9ca3af; }
+        .page-navigation button:disabled { opacity: 0.4; cursor: not-allowed; }
+        .page-navigation .active { background: #2563eb; color: white; border-color: #2563eb; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-blue-100 min-h-screen">
+
+    <div class="w-full px-2 py-6 md:px-6 desktop-margin-right">
+        <div class="max-w-7xl mx-auto">
+            <div class="mb-8">
+                <h1 class="text-3xl font-bold text-blue-700">Monthly Schedule</h1>
+                <p class="text-sm text-blue-400 mt-2">Plan ahead with our monthly service schedule. View full details or a quick summary of MC and Pastor assignments.</p>
+                <p class="text-sm text-blue-400 mt-1">Choose a landscape paper size before downloading. You can download the current page as an image or all pages as a ZIP.</p>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Filter by Month</label>
+                        <select id="monthFilter" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+                            <option value="">All Available Months</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Detail Level</label>
+                        <select id="detailLevel" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+                            <option value="full">Full Details</option>
+                            <option value="mc_pastor">MC Name & Pastor</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Paper Size (Landscape)</label>
+                        <select id="paperSize" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+                            <option value="a4">A4 (Landscape)</option>
+                            <option value="short">Short (Landscape)</option>
+                            <option value="long">Long (Landscape)</option>
+                            <option value="legal">Legal / 8.5x14 (Landscape)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Font Size</label>
+                        <input type="range" id="fontSizeSlider" min="10" max="20" value="14" class="w-full">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Font Color</label>
+                        <input type="color" id="fontColorPicker" value="#000000" class="w-10 h-10 rounded border border-gray-300">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Vertical Align</label>
+                        <select id="verticalAlign" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+                            <option value="stretch" selected>Fill Space</option>
+                            <option value="center">Center</option>
+                            <option value="start">Top</option>
+                            <option value="end">Bottom</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Column Gap</label>
+                        <select id="columnGap" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+                            <option value="4mm">Narrow</option>
+                            <option value="6mm" selected>Normal</option>
+                            <option value="10mm">Wide</option>
+                        </select>
+                    </div>
+
+                    <!-- Download buttons – side by side -->
+                    <div class="sm:col-span-2 lg:col-span-1 flex items-end gap-2">
+                        <button id="downloadCurrentPage" class="flex-1 bg-green-600 text-white px-4 py-2.5 rounded-lg hover:bg-green-700 transition font-medium text-sm">
+                            📄 Current Page
+                        </button>
+                        <button id="downloadAllPages" class="flex-1 bg-blue-700 text-white px-4 py-2.5 rounded-lg hover:bg-blue-800 transition font-medium text-sm">
+                            📦 All Pages (ZIP)
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="pageNavigation" class="page-navigation"></div>
+            <div class="schedule-pages-wrapper" id="pagesContainer"></div>
+        </div>
+    </div>
+
+    <script src="program_navbar.js"></script>
+
+    <script>
+    (function() {
+        const SUPABASE_URL = 'https://mjpahhjaefflposesygk.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1qcGFoaGphZWZmbHBvc2VzeWdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ4NjQzMDMsImV4cCI6MjEwMDQ0MDMwM30.cNMzs1TxHKPbWKtY9xZD6W29nSU1ocvm8n5pjE68d1g';
+
+        const memberId = localStorage.getItem('memberId');
+        const isLoggedIn = localStorage.getItem('memberLoggedIn') === 'true';
+        const role = localStorage.getItem('memberRole');
+        if (!isLoggedIn || !memberId || role !== 'program') {
+            window.location.href = '../portal_login.html';
+            return;
+        }
+
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+            global: { headers: { 'x-member-id': memberId } }
+        });
+
+        const monthFilter = document.getElementById('monthFilter');
+        const detailLevel = document.getElementById('detailLevel');
+        const fontSizeSlider = document.getElementById('fontSizeSlider');
+        const fontColorPicker = document.getElementById('fontColorPicker');
+        const paperSizeSelect = document.getElementById('paperSize');
+        const pagesContainer = document.getElementById('pagesContainer');
+        const verticalAlignSelect = document.getElementById('verticalAlign');
+        const columnGapSelect = document.getElementById('columnGap');
+        const pageNavigation = document.getElementById('pageNavigation');
+        const downloadCurrentBtn = document.getElementById('downloadCurrentPage');
+        const downloadAllBtn = document.getElementById('downloadAllPages');
+
+        let allPrograms = [];
+        let currentMonthName = '';
+        const PROGRAMS_PER_PAGE = 2;
+        let pageElements = [];
+        let currentPageIndex = 0;
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '';
+            const d = new Date(dateStr);
+            return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+        }
+
+        function buildDetailRows(prog, mode) {
+            const fields = mode === 'full' ? [
+                { label: 'MC', value: prog.mc_name || '—' },
+                { label: 'Teacher', value: prog.teachers || '—' },
+                { label: 'Welcome', value: prog.welcome || '—' },
+                { label: 'Testimony', value: prog.testimony || '—' },
+                { label: 'Scripture', value: prog.scripture || '—' },
+                { label: 'Opening Song', value: prog.opening_song || '—' },
+                { label: 'Opening Prayer', value: prog.opening_prayers || '—' },
+                { label: 'Worship Leader', value: prog.worship_leader || '—' },
+                { label: 'Pastor', value: prog.pastor || '—' },
+                { label: 'Officiating', value: prog.officiating || '—' },
+                { label: 'Exhortation', value: prog.exhortation || '—' },
+                { label: 'Presentation', value: prog.presentation || '—' },
+                { label: 'Special Presentation', value: prog.presentation_no || '—' },
+                { label: 'Closing Song', value: prog.closing_song || '—' },
+                { label: 'Benediction', value: prog.prayer_benediction || '—' }
+            ] : [
+                { label: 'MC', value: prog.mc_name || '—' },
+                { label: 'Pastor', value: prog.pastor || '—' }
+            ];
+
+            let html = '';
+            fields.forEach(f => {
+                html += `
+                    <div class="detail-row">
+                        <span class="detail-label">${f.label}</span>
+                        <div class="detail-dotted"></div>
+                        <span class="detail-value">${f.value}</span>
+                    </div>
+                `;
+            });
+            return html;
+        }
+
+        function createPage(programsChunk, pageNumber, monthName) {
+            const mode = detailLevel.value;
+            let cardsHtml = '';
+
+            const left = programsChunk[0] || null;
+            const right = programsChunk[1] || null;
+
+            const leftCard = left ? `
+                <div class="program-card">
+                    <div class="card-text text-sm">
+                        <div class="font-semibold text-center mb-2" style="color:#000000;">${formatDate(left.program_date)}</div>
+                        ${buildDetailRows(left, mode)}
+                    </div>
+                </div>
+            ` : `<div class="program-card invisible"></div>`;
+
+            const rightCard = right ? `
+                <div class="program-card">
+                    <div class="card-text text-sm">
+                        <div class="font-semibold text-center mb-2" style="color:#000000;">${formatDate(right.program_date)}</div>
+                        ${buildDetailRows(right, mode)}
+                    </div>
+                </div>
+            ` : `<div class="program-card invisible"></div>`;
+
+            cardsHtml = leftCard + rightCard;
+
+            const monthText = monthName ? `Month of ${monthName}` : 'All Months';
+            return `
+                <div class="page-header">
+                    <img src="mcb.jpg" alt="MCB Logo" class="header-logo" onerror="this.style.display='none'">
+                    <div class="header-text">
+                        <div class="main-title">Monthly Schedule Program</div>
+                        <div class="sub-title">Mobilization Church Balilihan</div>
+                        <div class="month-info">${monthText}</div>
+                    </div>
+                </div>
+                <div class="card-grid">
+                    ${cardsHtml}
+                </div>
+                <div class="page-footer">MCB Program Monthly Schedule – Page ${pageNumber}</div>
+            `;
+        }
+
+        function applyGridStyles() {
+            const grids = document.querySelectorAll('.card-grid');
+            const alignMap = {
+                'stretch': 'stretch',
+                'center': 'center',
+                'start': 'start',
+                'end': 'end'
+            };
+            const alignValue = alignMap[verticalAlignSelect.value];
+            const gapValue = columnGapSelect.value;
+
+            grids.forEach(grid => {
+                grid.style.alignContent = alignValue;
+                grid.style.alignItems = alignValue === 'stretch' ? 'stretch' : 'start';
+                grid.style.gap = gapValue;
+            });
+        }
+
+        function showPage(index) {
+            pageElements.forEach((page, i) => {
+                page.style.display = (i === index) ? 'block' : 'none';
+            });
+            updateNavigationButtons(index);
+        }
+
+        function updateNavigationButtons(activeIndex) {
+            const totalPages = pageElements.length;
+            let html = '';
+            html += `<button onclick="window.goToPage(0)" ${activeIndex === 0 ? 'disabled' : ''}>« First</button>`;
+            html += `<button onclick="window.goToPage(${activeIndex - 1})" ${activeIndex === 0 ? 'disabled' : ''}>← Prev</button>`;
+            for (let i = 0; i < totalPages; i++) {
+                html += `<button onclick="window.goToPage(${i})" class="${i === activeIndex ? 'active' : ''}">${i + 1}</button>`;
+            }
+            html += `<button onclick="window.goToPage(${activeIndex + 1})" ${activeIndex === totalPages - 1 ? 'disabled' : ''}>Next →</button>`;
+            html += `<button onclick="window.goToPage(${totalPages - 1})" ${activeIndex === totalPages - 1 ? 'disabled' : ''}>Last »</button>`;
+            pageNavigation.innerHTML = html;
+        }
+
+        window.goToPage = function(index) {
+            if (index >= 0 && index < pageElements.length) {
+                currentPageIndex = index;
+                showPage(index);
+            }
+        };
+
+        function renderPages(programs) {
+            pagesContainer.innerHTML = '';
+            if (programs.length === 0) {
+                pagesContainer.innerHTML = '<div class="text-center text-sm text-gray-800 py-4">No programs found.</div>';
+                pageNavigation.innerHTML = '';
+                return;
+            }
+
+            const pages = [];
+            for (let i = 0; i < programs.length; i += PROGRAMS_PER_PAGE) {
+                pages.push(programs.slice(i, i + PROGRAMS_PER_PAGE));
+            }
+
+            const paperClass = paperSizeSelect.value;
+            const paperSizeClass = `paper-landscape-${paperClass}`;
+
+            pageElements = [];
+
+            pages.forEach((pagePrograms, idx) => {
+                const pageDiv = document.createElement('div');
+                pageDiv.className = `schedule-page ${paperSizeClass}`;
+                pageDiv.style.display = (idx === 0) ? 'block' : 'none';
+                pageDiv.innerHTML = `
+                    <div class="page-content">
+                        ${createPage(pagePrograms, idx + 1, currentMonthName)}
+                    </div>
+                `;
+                pagesContainer.appendChild(pageDiv);
+                pageElements.push(pageDiv);
+            });
+
+            currentPageIndex = 0;
+            showPage(0);
+            applyStyles();
+            applyGridStyles();
+        }
+
+        function applyStyles() {
+            const cards = document.querySelectorAll('.card-text');
+            cards.forEach(card => {
+                card.style.fontSize = fontSizeSlider.value + 'px';
+                card.style.color = fontColorPicker.value;
+            });
+        }
+
+        function updatePaperSize() {
+            const paperClass = paperSizeSelect.value;
+            const allPages = document.querySelectorAll('.schedule-page');
+            allPages.forEach(page => {
+                page.classList.remove('paper-landscape-a4', 'paper-landscape-short', 'paper-landscape-long', 'paper-landscape-legal');
+                page.classList.add(`paper-landscape-${paperClass}`);
+            });
+        }
+
+        async function loadPrograms() {
+            pagesContainer.innerHTML = '<div class="text-center text-sm text-gray-800 py-4">Loading...</div>';
+            const { data, error } = await supabase
+                .from('sunday_programs')
+                .select('*')
+                .order('program_date', { ascending: true });
+
+            if (error) {
+                pagesContainer.innerHTML = '<div class="text-center text-sm text-red-500 py-4">Error loading data</div>';
+                return;
+            }
+            allPrograms = data || [];
+
+            const monthsSet = new Set();
+            allPrograms.forEach(p => {
+                if (p.program_date) {
+                    const d = new Date(p.program_date);
+                    monthsSet.add(`${d.getFullYear()}-${d.getMonth()}`);
+                }
+            });
+            const sortedMonths = Array.from(monthsSet).sort();
+            monthFilter.innerHTML = '<option value="">All Available Months</option>';
+            sortedMonths.forEach(key => {
+                const [year, month] = key.split('-').map(Number);
+                const monthName = new Date(year, month).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+                const opt = document.createElement('option');
+                opt.value = key;
+                opt.textContent = monthName;
+                monthFilter.appendChild(opt);
+            });
+
+            currentMonthName = '';
+            renderPages(allPrograms);
+        }
+
+        // ---- Download current page (4K PNG) ----
+        async function downloadCurrentPage() {
+            if (pageElements.length === 0) return;
+            const pageEl = pageElements[currentPageIndex];
+            const btn = downloadCurrentBtn;
+            const original = btn.innerHTML;
+            btn.innerHTML = 'Capturing...';
+            btn.disabled = true;
+
+            try {
+                const canvas = await html2canvas(pageEl, { scale: 4, useCORS: true, backgroundColor: '#ffffff' });
+                const link = document.createElement('a');
+                link.download = `MCB_Schedule_Page_${currentPageIndex + 1}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            } catch (err) {
+                alert('Error capturing page.');
+            } finally {
+                btn.innerHTML = original;
+                btn.disabled = false;
+            }
+        }
+
+        // ---- Download all pages (ZIP) ----
+        async function downloadAllPages() {
+            if (pageElements.length === 0) return;
+            // Show all pages temporarily
+            pageElements.forEach(page => page.style.display = 'block');
+            const btn = downloadAllBtn;
+            const original = btn.innerHTML;
+            btn.innerHTML = 'Generating ZIP...';
+            btn.disabled = true;
+
+            const zip = new JSZip();
+            const promises = [];
+            for (let i = 0; i < pageElements.length; i++) {
+                const page = pageElements[i];
+                const promise = html2canvas(page, { scale: 4, useCORS: true, backgroundColor: '#ffffff' })
+                    .then(canvas => {
+                        const dataUrl = canvas.toDataURL('image/png').split(',')[1];
+                        zip.file(`Page_${i + 1}.png`, dataUrl, { base64: true });
+                    });
+                promises.push(promise);
+            }
+
+            try {
+                await Promise.all(promises);
+                const blob = await zip.generateAsync({ type: 'blob' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `MCB_Schedule_All_Pages.zip`;
+                link.click();
+                URL.revokeObjectURL(link.href);
+            } catch (err) {
+                alert('Error generating ZIP.');
+            } finally {
+                showPage(currentPageIndex); // restore visibility
+                btn.innerHTML = original;
+                btn.disabled = false;
+            }
+        }
+
+        // Event listeners
+        monthFilter.addEventListener('change', function() {
+            const key = this.value;
+            if (!key) {
+                currentMonthName = '';
+                renderPages(allPrograms);
+                return;
+            }
+            const [year, month] = key.split('-').map(Number);
+            const monthName = new Date(year, month).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+            currentMonthName = monthName;
+            const filtered = allPrograms.filter(prog => {
+                if (!prog.program_date) return false;
+                const d = new Date(prog.program_date);
+                return d.getFullYear() === year && d.getMonth() === month;
+            });
+            renderPages(filtered);
+        });
+
+        detailLevel.addEventListener('change', function() {
+            const key = monthFilter.value;
+            if (!key) {
+                currentMonthName = '';
+                renderPages(allPrograms);
+            } else {
+                const [year, month] = key.split('-').map(Number);
+                const monthName = new Date(year, month).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+                currentMonthName = monthName;
+                const filtered = allPrograms.filter(prog => {
+                    if (!prog.program_date) return false;
+                    const d = new Date(prog.program_date);
+                    return d.getFullYear() === year && d.getMonth() === month;
+                });
+                renderPages(filtered);
+            }
+        });
+
+        paperSizeSelect.addEventListener('change', updatePaperSize);
+        fontSizeSlider.addEventListener('input', applyStyles);
+        fontColorPicker.addEventListener('input', applyStyles);
+        verticalAlignSelect.addEventListener('change', applyGridStyles);
+        columnGapSelect.addEventListener('change', applyGridStyles);
+
+        downloadCurrentBtn.addEventListener('click', downloadCurrentPage);
+        downloadAllBtn.addEventListener('click', downloadAllPages);
+
+        loadPrograms();
+    })();
+    </script>
+</body>
+</html>
