@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Member Login Portal - MCB</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bcryptjs@2.4.3/dist/bcrypt.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .login-card {
+            background: white;
+            border-radius: 24px;
+            padding: 40px 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 420px;
+            text-align: center;
+            animation: fadeInUp 0.6s ease;
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .login-title {
+            font-size: 28px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 6px;
+        }
+        .login-subtitle {
+            font-size: 14px;
+            color: #94a3b8;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #475569;
+            margin-bottom: 8px;
+        }
+        .password-wrapper {
+            position: relative;
+        }
+        .password-wrapper input {
+            width: 100%;
+            padding: 14px 48px 14px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 15px;
+            background: #f8fafc;
+            color: #334155;
+            transition: all 0.3s;
+        }
+        .password-wrapper input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102,126,234,0.1);
+            background: white;
+        }
+        .toggle-password {
+            position: absolute;
+            top: 50%;
+            right: 12px;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            color: #94a3b8;
+            padding: 4px;
+            line-height: 1;
+        }
+        .toggle-password:hover {
+            color: #667eea;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 15px;
+            background: #f8fafc;
+            color: #334155;
+            transition: all 0.3s;
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102,126,234,0.1);
+            background: white;
+        }
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #475569;
+            text-align: left;
+        }
+        .checkbox-group input {
+            width: 16px;
+            height: 16px;
+            accent-color: #667eea;
+        }
+        .error-message {
+            color: #dc2626;
+            font-size: 13px;
+            margin-bottom: 15px;
+            display: none;
+        }
+        .forgot-link {
+            display: block;
+            text-align: right;
+            font-size: 13px;
+            color: #667eea;
+            text-decoration: none;
+            margin-bottom: 20px;
+        }
+        .forgot-link:hover {
+            text-decoration: underline;
+        }
+        .btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(102,126,234,0.3);
+            width: 100%;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102,126,234,0.5);
+        }
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .footer-note {
+            margin-top: 25px;
+            font-size: 12px;
+            color: #94a3b8;
+            text-align: center;
+        }
+        @media (max-width: 500px) {
+            .login-card {
+                padding: 30px 20px;
+            }
+            .login-title {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <h1 class="login-title">Mobilization Church Balilihan</h1>
+        <p class="login-subtitle">Member Login Portal</p>
+        <div class="error-message" id="errorMessage">Invalid username or password.</div>
+        <form id="loginForm">
+            <div class="form-group">
+                <label>Username or Email</label>
+                <input type="text" id="username" placeholder="Enter username or email" required>
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <div class="password-wrapper">
+                    <input type="password" id="password" placeholder="Enter your password" required>
+                    <button type="button" class="toggle-password" id="togglePassword">👁</button>
+                </div>
+            </div>
+            <div class="checkbox-group">
+                <input type="checkbox" id="rememberMe">
+                <label for="rememberMe">Remember me</label>
+            </div>
+            <a href="#" class="forgot-link" id="forgotPassword">Forgot password?</a>
+            <button type="submit" class="btn" id="loginBtn">Sign In</button>
+        </form>
+        <div class="footer-note">
+            Mobilization Church Balilihan © 2026<br>All rights reserved.
+        </div>
+    </div>
+
+    <!-- Forgot Password Modal -->
+    <div id="forgotModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); justify-content:center; align-items:center; z-index:999;">
+        <div style="background:white; padding:30px; border-radius:20px; text-align:center; max-width:350px; width:90%;">
+            <h3 style="color:#1e293b; margin-bottom:10px;">Forgot Password</h3>
+            <p style="color:#475569; font-size:14px; margin-bottom:20px;">Please contact the church administrator to reset your password.</p>
+            <button onclick="document.getElementById('forgotModal').style.display='none'" style="background:#667eea; color:white; border:none; padding:10px 20px; border-radius:10px; cursor:pointer;">Close</button>
+        </div>
+    </div>
+
+    <script>
+    (function() {
+        const SUPABASE_URL = 'https://mjpahhjaefflposesygk.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1qcGFoaGphZWZmbHBvc2VzeWdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ4NjQzMDMsImV4cCI6MjEwMDQ0MDMwM30.cNMzs1TxHKPbWKtY9xZD6W29nSU1ocvm8n5pjE68d1g';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        const form = document.getElementById('loginForm');
+        const errorMsg = document.getElementById('errorMessage');
+        const loginBtn = document.getElementById('loginBtn');
+        const usernameInput = document.getElementById('username');
+        const rememberCheck = document.getElementById('rememberMe');
+        const forgotLink = document.getElementById('forgotPassword');
+        const forgotModal = document.getElementById('forgotModal');
+        const passwordInput = document.getElementById('password');
+        const toggleBtn = document.getElementById('togglePassword');
+
+        // Rate limiting
+        let failedAttempts = 0;
+        const MAX_ATTEMPTS = 5;
+        const LOCKOUT_TIME = 50 * 1000; // 50 seconds
+        let lockoutStart = null;
+        let countdownInterval = null;
+
+        // Load remembered username – local storage persists even after browser close
+        window.addEventListener('DOMContentLoaded', () => {
+            const rememberedUser = localStorage.getItem('rememberedMemberUsername');
+            if (rememberedUser) {
+                usernameInput.value = rememberedUser;
+                rememberCheck.checked = true;
+            }
+            // Check if lockout was active from a previous session (stored in sessionStorage)
+            const storedLockout = sessionStorage.getItem('lockoutStart');
+            if (storedLockout) {
+                const start = parseInt(storedLockout);
+                const remaining = LOCKOUT_TIME - (Date.now() - start);
+                if (remaining > 0) {
+                    lockoutStart = start;
+                    failedAttempts = MAX_ATTEMPTS;
+                    startCountdown(remaining);
+                } else {
+                    sessionStorage.removeItem('lockoutStart');
+                }
+            }
+        });
+
+        // Toggle password visibility
+        toggleBtn.addEventListener('click', () => {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+        });
+
+        // Forgot password
+        forgotLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            forgotModal.style.display = 'flex';
+        });
+
+        function startCountdown(remainingMs) {
+            loginBtn.disabled = true;
+            if (countdownInterval) clearInterval(countdownInterval);
+
+            const updateCountdown = () => {
+                const now = Date.now();
+                const elapsed = now - lockoutStart;
+                const remaining = Math.max(0, LOCKOUT_TIME - elapsed);
+                const seconds = Math.ceil(remaining / 1000);
+                errorMsg.textContent = `Too many failed attempts. Please wait ${seconds} second(s).`;
+                errorMsg.style.display = 'block';
+                if (remaining <= 0) {
+                    clearInterval(countdownInterval);
+                    countdownInterval = null;
+                    failedAttempts = 0;
+                    lockoutStart = null;
+                    loginBtn.disabled = false;
+                    errorMsg.style.display = 'none';
+                    sessionStorage.removeItem('lockoutStart');
+                }
+            };
+
+            updateCountdown();
+            countdownInterval = setInterval(updateCountdown, 200);
+        }
+
+        function applyLockout() {
+            lockoutStart = Date.now();
+            sessionStorage.setItem('lockoutStart', lockoutStart);
+            startCountdown(LOCKOUT_TIME);
+        }
+
+        // Main login handler
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            if (lockoutStart) {
+                const remaining = LOCKOUT_TIME - (Date.now() - lockoutStart);
+                if (remaining > 0) {
+                    errorMsg.textContent = `Too many failed attempts. Please wait ${Math.ceil(remaining/1000)} second(s).`;
+                    errorMsg.style.display = 'block';
+                    return;
+                } else {
+                    clearInterval(countdownInterval);
+                    countdownInterval = null;
+                    failedAttempts = 0;
+                    lockoutStart = null;
+                    loginBtn.disabled = false;
+                    sessionStorage.removeItem('lockoutStart');
+                }
+            }
+
+            const usernameOrEmail = usernameInput.value.trim();
+            const password = passwordInput.value.trim();
+
+            if (!usernameOrEmail || !password) {
+                errorMsg.textContent = 'Please enter both username/email and password.';
+                errorMsg.style.display = 'block';
+                return;
+            }
+
+            loginBtn.disabled = true;
+            loginBtn.textContent = 'Signing in...';
+            errorMsg.style.display = 'none';
+
+            try {
+                const { data: rpcData, error: rpcError } = await supabase.rpc('member_login', {
+                    login_identifier: usernameOrEmail,
+                    pwd: password
+                });
+
+                if (!rpcError && rpcData && rpcData.success) {
+                    handleLoginSuccess(rpcData.member);
+                    return;
+                }
+
+                console.warn('member_login RPC failed, falling back to direct check');
+                const member = await findMemberDirect(usernameOrEmail);
+                if (!member) throw new Error('Member not found');
+
+                const isMatch = bcrypt.compareSync(password, member.hashed_password);
+                if (!isMatch) throw new Error('Invalid password');
+
+                handleLoginSuccess(member);
+            } catch (err) {
+                console.error('Login error:', err);
+                failedAttempts++;
+                if (failedAttempts >= MAX_ATTEMPTS) {
+                    applyLockout();
+                } else {
+                    errorMsg.textContent = 'Invalid username/email or password.';
+                    errorMsg.style.display = 'block';
+                }
+            } finally {
+                if (!lockoutStart) {
+                    loginBtn.disabled = false;
+                }
+                loginBtn.textContent = 'Sign In';
+            }
+        });
+
+        async function findMemberDirect(identifier) {
+            const isEmail = identifier.includes('@');
+            let query = supabase.from('members').select('*');
+            if (isEmail) {
+                query = query.eq('email', identifier);
+            } else {
+                query = query.eq('username', identifier);
+            }
+            const { data, error } = await query.maybeSingle();
+            if (error) throw error;
+            return data;
+        }
+
+        function handleLoginSuccess(member) {
+            if (countdownInterval) clearInterval(countdownInterval);
+            sessionStorage.removeItem('lockoutStart');
+            failedAttempts = 0;
+            lockoutStart = null;
+
+            // Remember me: store username in localStorage (persistent)
+            if (rememberCheck.checked) {
+                localStorage.setItem('rememberedMemberUsername', member.username);
+            } else {
+                localStorage.removeItem('rememberedMemberUsername');
+            }
+
+            // ====== IMPORTANT CHANGE: Use localStorage for session tokens ======
+            localStorage.setItem('memberLoggedIn', 'true');
+            localStorage.setItem('memberId', member.id);
+            localStorage.setItem('memberRole', member.role);
+            localStorage.setItem('memberName', `${member.first_name || ''} ${member.last_name || ''}`);
+
+            const role = member.role;
+            let redirectPath = 'member/index.html';
+            switch (role) {
+                case 'program': redirectPath = 'program/index.html'; break;
+                case 'music': redirectPath = 'music/index.html'; break;
+                case 'pastoral': redirectPath = 'pastoral/index.html'; break;
+                case 'member': redirectPath = 'member/index.html'; break;
+                case 'treasurer': redirectPath = 'treasurer/index.html'; break;
+            }
+            window.location.href = redirectPath;
+        }
+    })();
+    </script>
+</body>
+</html>
