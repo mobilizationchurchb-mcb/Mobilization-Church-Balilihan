@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Users - MCB</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- bcryptjs is no longer needed – we rely on the database trigger -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Poppins', sans-serif; }
+        @media (max-width: 767px) {
+            #main-content {
+                padding: 0 !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-blue-100 min-h-screen">
+
+    <div class="w-full px-0 py-6 md:px-8">
+        <div class="max-w-6xl mx-auto">
+            <div class="mb-8">
+                <h1 class="text-3xl font-bold text-blue-700">Admin Users</h1>
+                <p class="text-sm text-blue-400 mt-2">Manage administrator accounts for the MCB system. Only super admins can add or remove users.</p>
+            </div>
+
+            <div class="mb-6">
+                <button id="addAdminBtn" class="bg-green-600 text-white px-6 py-2.5 rounded-lg hover:bg-green-700 transition font-medium">
+                    ➕ Add New Admin
+                </button>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Username</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminTableBody" class="bg-white divide-y divide-gray-200">
+                            <tr>
+                                <td colspan="4" class="px-6 py-4 text-center text-sm text-gray-400">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Admin Modal -->
+    <div id="adminModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md mx-4">
+            <h2 id="modalTitle" class="text-xl font-bold text-blue-700 mb-4">Add Admin User</h2>
+            <form id="adminForm">
+                <input type="hidden" id="adminId" value="">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Username *</label>
+                    <input type="text" id="adminUsername" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Password *</label>
+                    <input type="password" id="adminPassword" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <p class="text-xs text-gray-400 mt-1">Leave blank to keep existing password (when editing).</p>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Role</label>
+                    <select id="adminRole" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <option value="admin">Admin</option>
+                        <option value="super_admin">Super Admin</option>
+                    </select>
+                </div>
+                <div class="flex gap-3 justify-end">
+                    <button type="button" id="cancelModalBtn" class="bg-gray-200 text-gray-700 px-6 py-2.5 rounded-lg hover:bg-gray-300 transition">Cancel</button>
+                    <button type="submit" class="bg-blue-600 text-white px-6 py-2.5 rounded-lg hover:bg-blue-700 transition">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="admin_navbar.js"></script>
+
+    <script>
+    (function() {
+        const SUPABASE_URL = 'https://mjpahhjaefflposesygk.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1qcGFoaGphZWZmbHBvc2VzeWdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ4NjQzMDMsImV4cCI6MjEwMDQ0MDMwM30.cNMzs1TxHKPbWKtY9xZD6W29nSU1ocvm8n5pjE68d1g';
+
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        const tableBody = document.getElementById('adminTableBody');
+        const addAdminBtn = document.getElementById('addAdminBtn');
+        const modal = document.getElementById('adminModal');
+        const cancelBtn = document.getElementById('cancelModalBtn');
+        const adminForm = document.getElementById('adminForm');
+        const modalTitle = document.getElementById('modalTitle');
+        const adminIdInput = document.getElementById('adminId');
+        const adminUsernameInput = document.getElementById('adminUsername');
+        const adminPasswordInput = document.getElementById('adminPassword');
+        const adminRoleSelect = document.getElementById('adminRole');
+
+        // ---------- RELIABLE SESSION GUARD ----------
+        async function verifySuperAdminAccess() {
+            const adminUsername = sessionStorage.getItem('adminUsername') || localStorage.getItem('adminUsername');
+            const adminLoggedIn = sessionStorage.getItem('adminLoggedIn') === 'true' || localStorage.getItem('adminLoggedIn') === 'true';
+
+            if (!adminLoggedIn || !adminUsername) {
+                window.location.href = 'login.html';
+                return false;
+            }
+
+            try {
+                const { data: admin, error } = await supabase
+                    .from('admin_users')
+                    .select('role')
+                    .eq('username', adminUsername)
+                    .maybeSingle();
+
+                if (error || !admin || admin.role !== 'super_admin') {
+                    alert('Access denied. Only super admins can manage admin users.');
+                    window.location.href = 'index.html';
+                    return false;
+                }
+
+                sessionStorage.setItem('adminRole', admin.role);
+                localStorage.setItem('adminRole', admin.role);
+                return true;
+            } catch (err) {
+                console.error('Session verification error:', err);
+                window.location.href = 'login.html';
+                return false;
+            }
+        }
+
+        // Load admins
+        async function loadAdmins() {
+            tableBody.innerHTML = `<tr><td colspan="4" class="px-6 py-4 text-center text-sm text-gray-400">Loading...</td></tr>`;
+            const { data, error } = await supabase
+                .from('admin_users')
+                .select('*')
+                .order('username', { ascending: true });
+
+            if (error) {
+                tableBody.innerHTML = `<tr><td colspan="4" class="px-6 py-4 text-center text-sm text-red-500">Error loading admins</td></tr>`;
+                return;
+            }
+
+            if (data.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="4" class="px-6 py-4 text-center text-sm text-gray-400">No admin users found.</td></tr>`;
+                return;
+            }
+
+            tableBody.innerHTML = data.map(admin => `
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${admin.username}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${admin.role === 'super_admin' ? '🛡️ Super Admin' : '👤 Admin'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="inline-block px-2 py-1 text-xs font-medium rounded-full ${admin.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                            ${admin.is_active ? 'Active' : 'Inactive'}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <button class="text-blue-600 hover:text-blue-800 bg-blue-50 px-3 py-1 rounded-lg transition mr-2" onclick='editAdmin(${JSON.stringify(admin)})'>✏️ Edit</button>
+                        <button class="text-red-600 hover:text-red-800 bg-red-50 px-3 py-1 rounded-lg transition" onclick="deleteAdmin('${admin.id}')">🗑️ Delete</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Open modal for adding
+        addAdminBtn.addEventListener('click', () => {
+            adminIdInput.value = '';
+            adminUsernameInput.value = '';
+            adminPasswordInput.value = '';
+            adminPasswordInput.required = true;
+            adminRoleSelect.value = 'admin';
+            modalTitle.textContent = 'Add Admin User';
+            modal.classList.remove('hidden');
+        });
+
+        // Close modal
+        cancelBtn.addEventListener('click', () => modal.classList.add('hidden'));
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) modal.classList.add('hidden');
+        });
+
+        // Edit admin
+        window.editAdmin = function(admin) {
+            adminIdInput.value = admin.id;
+            adminUsernameInput.value = admin.username;
+            adminPasswordInput.value = '';
+            adminPasswordInput.required = false;
+            adminRoleSelect.value = admin.role || 'admin';
+            modalTitle.textContent = 'Edit Admin User';
+            modal.classList.remove('hidden');
+        };
+
+        // Save admin (create or update) – NO bcryptjs, database trigger handles hashing
+        adminForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const id = adminIdInput.value;
+            const username = adminUsernameInput.value.trim();
+            const password = adminPasswordInput.value.trim();
+            const role = adminRoleSelect.value;
+
+            if (!username) {
+                alert('Username is required.');
+                return;
+            }
+
+            const adminData = {
+                username: username,
+                role: role,
+                is_active: true
+            };
+
+            // If password is provided, send it as plain text – trigger will hash it
+            if (password) {
+                adminData.hashed_password = password;
+            }
+
+            let error = null;
+            if (id) {
+                // Update – if no password, don't include hashed_password at all
+                if (!password) {
+                    delete adminData.hashed_password;
+                }
+                const { error: updateError } = await supabase
+                    .from('admin_users')
+                    .update(adminData)
+                    .eq('id', id);
+                error = updateError;
+            } else {
+                // Insert – password is required
+                if (!password) {
+                    alert('Password is required for new admin.');
+                    return;
+                }
+                const { error: insertError } = await supabase
+                    .from('admin_users')
+                    .insert([adminData]);
+                error = insertError;
+            }
+
+            if (error) {
+                alert('Error saving admin: ' + error.message);
+            } else {
+                alert('Admin saved successfully!');
+                modal.classList.add('hidden');
+                loadAdmins();
+            }
+        });
+
+        // Delete admin
+        window.deleteAdmin = async function(id) {
+            if (!confirm('Are you sure you want to delete this admin?')) return;
+            const { error } = await supabase
+                .from('admin_users')
+                .delete()
+                .eq('id', id);
+            if (error) {
+                alert('Error deleting admin: ' + error.message);
+            } else {
+                loadAdmins();
+            }
+        };
+
+        // Start
+        verifySuperAdminAccess().then(allowed => {
+            if (allowed) loadAdmins();
+        });
+    })();
+    </script>
+</body>
+</html>
