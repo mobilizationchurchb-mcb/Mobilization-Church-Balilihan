@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - MCB</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .dashboard {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px 15px;
+        }
+        .welcome-section {
+            background: white;
+            border-radius: 20px;
+            padding: 25px 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        .welcome-title {
+            font-size: 28px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 6px;
+        }
+        .welcome-subtitle {
+            font-size: 14px;
+            color: #64748b;
+            margin-bottom: 20px;
+        }
+        /* New admin greeting */
+        .admin-greeting {
+            background: #f0f4ff;
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .admin-greeting .admin-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+        .admin-greeting .admin-text {
+            flex: 1;
+        }
+        .admin-greeting .admin-name {
+            font-weight: 600;
+            color: #1e293b;
+        }
+        .admin-greeting .admin-role {
+            font-size: 13px;
+            color: #475569;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 12px;
+        }
+        .stat-card {
+            background: #f8fafc;
+            border-radius: 16px;
+            padding: 20px 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            text-align: center;
+        }
+        .stat-icon { font-size: 28px; margin-bottom: 6px; }
+        .stat-number { font-size: 24px; font-weight: 700; color: #1e293b; }
+        .stat-label { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #94a3b8; }
+
+        .birthday-section {
+            background: white;
+            border-radius: 20px;
+            padding: 25px 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        .section-title { font-size: 20px; font-weight: 700; color: #1e293b; margin-bottom: 4px; }
+        .section-subtitle { font-size: 13px; color: #94a3b8; margin-bottom: 20px; }
+
+        .birthday-list {
+            list-style: none;
+        }
+        .birthday-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px 0;
+            border-bottom: 1px solid #f1f5f9;
+            cursor: pointer;
+            transition: background 0.2s;
+            border-radius: 12px;
+            padding: 12px;
+            margin: 4px 0;
+        }
+        .birthday-item:hover {
+            background: #f8fafc;
+        }
+        .profile-pic {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0;
+            border: 2px solid #e2e8f0;
+        }
+        .profile-placeholder {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+        .member-info {
+            flex: 1;
+        }
+        .member-name {
+            font-weight: 600;
+            color: #1e293b;
+            font-size: 16px;
+        }
+        .birthday-date {
+            font-size: 15px;
+            font-weight: 500;
+            color: #667eea;
+            white-space: nowrap;
+        }
+        .empty-message {
+            text-align: center;
+            padding: 30px;
+            color: #94a3b8;
+            font-style: italic;
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.3s ease;
+        }
+        .modal-content {
+            background: white;
+            border-radius: 24px;
+            width: 100%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 30px 20px 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            position: relative;
+            animation: slideUp 0.4s ease;
+            margin: 0 10px;
+        }
+        @media (max-width: 500px) {
+            .modal-content {
+                margin: 0;
+                border-radius: 0;
+                max-width: 100%;
+                max-height: 100vh;
+                height: 100vh;
+                overflow-y: auto;
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideUp {
+            from { transform: translateY(40px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .balloons {
+            position: relative;
+            height: 60px;
+            margin: -10px 0 5px;
+            pointer-events: none;
+        }
+        .balloon {
+            position: absolute;
+            bottom: 0;
+            width: 30px;
+            height: 40px;
+            border-radius: 50% 50% 40% 40%;
+            background: red;
+            box-shadow: inset -5px -5px 10px rgba(0,0,0,0.2);
+            animation: popIn 0.6s ease-out forwards, floatBalloon 3s ease-in-out 0.6s infinite;
+            transform-origin: center bottom;
+        }
+        .balloon::before {
+            content: "";
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 2px;
+            height: 12px;
+            background: #888;
+        }
+        .balloon:nth-child(1) { left: 10%; background: #ff6b6b; animation-delay: 0s, 0.2s; }
+        .balloon:nth-child(2) { left: 35%; background: #feca57; animation-delay: 0.1s, 0.3s; }
+        .balloon:nth-child(3) { left: 55%; background: #48dbfb; animation-delay: 0.2s, 0.4s; }
+        .balloon:nth-child(4) { left: 75%; background: #ff9ff3; animation-delay: 0.3s, 0.5s; }
+        .balloon:nth-child(5) { left: 90%; background: #54a0ff; animation-delay: 0.4s, 0.6s; }
+
+        @keyframes popIn {
+            0% { transform: scale(0); opacity: 0; }
+            70% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        @keyframes floatBalloon {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-12px) rotate(2deg); }
+        }
+
+        .card-landscape {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 20px;
+            padding: 25px 20px;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(102,126,234,0.4);
+            position: relative;
+            overflow: hidden;
+        }
+        .card-img {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid white;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .card-name {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        .card-birthdate {
+            font-size: 16px;
+            margin-bottom: 15px;
+            opacity: 0.9;
+        }
+        .card-message {
+            background: rgba(255,255,255,0.15);
+            border-radius: 12px;
+            padding: 20px;
+            width: 100%;
+            text-align: left;
+            font-size: 14px;
+            line-height: 1.6;
+            margin-top: 10px;
+        }
+        .card-message p {
+            margin-bottom: 12px;
+        }
+        .card-verse {
+            font-style: italic;
+            font-weight: 600;
+            margin: 15px 0;
+        }
+        .card-footer {
+            margin-top: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            text-align: center;
+            width: 100%;
+        }
+        .close-btn {
+            position: absolute;
+            top: 12px;
+            right: 18px;
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: #64748b;
+            line-height: 1;
+            z-index: 10;
+        }
+        .download-btn {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(16,185,129,0.3);
+            width: 100%;
+        }
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(16,185,129,0.5);
+        }
+
+        @media (max-width: 500px) {
+            #main-content {
+                padding: 0 !important;
+            }
+            .dashboard {
+                padding: 20px 0;
+            }
+            .welcome-title { font-size: 24px; }
+            .stat-number { font-size: 22px; }
+            .card-landscape {
+                padding: 20px 15px;
+            }
+            .card-message {
+                font-size: 13px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div id="main-content">
+    <div class="dashboard">
+        <!-- Welcome & Admin Info -->
+        <div class="welcome-section">
+            <h1 class="welcome-title">Mobilization Church Balilihan</h1>
+            <div class="admin-greeting" id="adminGreeting">
+                <div class="admin-avatar" id="adminInitials">A</div>
+                <div class="admin-text">
+                    <div class="admin-name" id="adminName">Admin</div>
+                    <div class="admin-role" id="adminRole">Role</div>
+                </div>
+            </div>
+            <p class="welcome-subtitle">Member Management System – Here's your congregation at a glance.</p>
+            <div class="stats-grid">
+                <div class="stat-card"><div class="stat-icon">👥</div><div class="stat-number" id="totalMembers">-</div><div class="stat-label">Total</div></div>
+                <div class="stat-card"><div class="stat-icon">✅</div><div class="stat-number" id="activeMembers">-</div><div class="stat-label">Active</div></div>
+                <div class="stat-card"><div class="stat-icon">📋</div><div class="stat-number" id="programMembers">-</div><div class="stat-label">Program</div></div>
+                <div class="stat-card"><div class="stat-icon">🎵</div><div class="stat-number" id="musicMembers">-</div><div class="stat-label">Music</div></div>
+                <div class="stat-card"><div class="stat-icon">⛪</div><div class="stat-number" id="pastoralMembers">-</div><div class="stat-label">Pastoral</div></div>
+                <div class="stat-card"><div class="stat-icon">👤</div><div class="stat-number" id="memberMembers">-</div><div class="stat-label">Member</div></div>
+                <div class="stat-card"><div class="stat-icon">💰</div><div class="stat-number" id="treasurerMembers">-</div><div class="stat-label">Treasurer</div></div>
+                <div class="stat-card"><div class="stat-icon">📊</div><div class="stat-number" id="avgAge">-</div><div class="stat-label">Avg Age</div></div>
+            </div>
+        </div>
+
+        <!-- Monthly Birthday Section -->
+        <div class="birthday-section">
+            <h2 class="section-title">🎂 Birthdays This Month</h2>
+            <p class="section-subtitle">Celebrating our members born in <span id="currentMonthName"></span>.</p>
+            <ul class="birthday-list" id="birthdayList">
+                <li class="empty-message">Loading birthdays...</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Birthday Popup Modal -->
+<div class="modal-overlay" id="birthdayModal">
+    <div class="modal-content">
+        <button class="close-btn" onclick="closeBirthdayModal()">&times;</button>
+        <div id="birthdayCard" class="card-landscape">
+            <div class="balloons">
+                <div class="balloon"></div>
+                <div class="balloon"></div>
+                <div class="balloon"></div>
+                <div class="balloon"></div>
+                <div class="balloon"></div>
+            </div>
+            <img id="modalProfilePic" class="card-img" src="" alt="Profile" style="display:none;">
+            <div id="modalPlaceholder" class="profile-placeholder" style="width:90px; height:90px; font-size:36px; display:none;"></div>
+            <div class="card-name" id="modalName"></div>
+            <div class="card-birthdate" id="modalBirthdate"></div>
+            <div class="card-message" id="modalMessage"></div>
+            <div class="card-footer">- Mobilization Church Balilihan</div>
+        </div>
+        <button class="download-btn" onclick="downloadBirthdayCard()">📥 Download Card</button>
+    </div>
+</div>
+
+<script src="admin_navbar.js"></script>
+<script>
+(function() {
+    const SUPABASE_URL = 'https://mjpahhjaefflposesygk.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1qcGFoaGphZWZmbHBvc2VzeWdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ4NjQzMDMsImV4cCI6MjEwMDQ0MDMwM30.cNMzs1TxHKPbWKtY9xZD6W29nSU1ocvm8n5pjE68d1g';
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+    const currentMonth = new Date().getMonth();
+    document.getElementById('currentMonthName').textContent = monthNames[currentMonth];
+
+    // Load admin info
+    async function loadAdminProfile() {
+        const adminUsername = sessionStorage.getItem('adminUsername') || localStorage.getItem('adminUsername');
+        if (!adminUsername) {
+            // Not logged in – redirect to admin login
+            window.location.href = 'login.html';
+            return;
+        }
+        try {
+            const { data: admin, error } = await supabase
+                .from('admin_users')
+                .select('*')
+                .eq('username', adminUsername)
+                .maybeSingle();
+
+            if (error || !admin) {
+                // Could not load admin – might be deleted, force logout
+                localStorage.removeItem('adminLoggedIn');
+                sessionStorage.removeItem('adminLoggedIn');
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // Update greeting
+            document.getElementById('adminName').textContent = admin.username;
+            const roleDisplay = admin.role === 'super_admin' ? '🛡️ Super Admin' : '👤 Admin';
+            document.getElementById('adminRole').textContent = roleDisplay;
+            document.getElementById('adminInitials').textContent = admin.username.charAt(0).toUpperCase();
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    // Stats loading (unchanged)
+    async function loadStats() {
+        const ids = ['totalMembers','activeMembers','programMembers','musicMembers','pastoralMembers','memberMembers','treasurerMembers','avgAge'];
+        ids.forEach(id => document.getElementById(id).textContent = '...');
+        try {
+            const { count: total } = await supabase.from('members').select('*', { count: 'exact', head: true });
+            const { count: active } = await supabase.from('members').select('*', { count: 'exact', head: true }).eq('is_active', true);
+            const { count: program } = await supabase.from('members').select('*', { count: 'exact', head: true }).eq('role', 'program');
+            const { count: music } = await supabase.from('members').select('*', { count: 'exact', head: true }).eq('role', 'music');
+            const { count: pastoral } = await supabase.from('members').select('*', { count: 'exact', head: true }).eq('role', 'pastoral');
+            const { count: member } = await supabase.from('members').select('*', { count: 'exact', head: true }).eq('role', 'member');
+            const { count: treasurer } = await supabase.from('members').select('*', { count: 'exact', head: true }).eq('role', 'treasurer');
+            const { data: ages } = await supabase.from('members').select('age');
+            const avg = ages?.length ? Math.round(ages.reduce((s, m) => s + (m.age || 0), 0) / ages.length) : 0;
+
+            document.getElementById('totalMembers').textContent = total || 0;
+            document.getElementById('activeMembers').textContent = active || 0;
+            document.getElementById('programMembers').textContent = program || 0;
+            document.getElementById('musicMembers').textContent = music || 0;
+            document.getElementById('pastoralMembers').textContent = pastoral || 0;
+            document.getElementById('memberMembers').textContent = member || 0;
+            document.getElementById('treasurerMembers').textContent = treasurer || 0;
+            document.getElementById('avgAge').textContent = avg;
+        } catch (err) {
+            console.error(err);
+            ids.forEach(id => document.getElementById(id).textContent = 'Err');
+        }
+    }
+
+    // Birthday list loading (unchanged)
+    async function loadBirthdays() {
+        const birthdayList = document.getElementById('birthdayList');
+        const { data, error } = await supabase
+            .from('members')
+            .select('*')
+            .order('birthdate', { ascending: true });
+
+        if (error) {
+            birthdayList.innerHTML = '<li class="empty-message">Failed to load birthdays.</li>';
+            return;
+        }
+
+        const monthBirthdays = data.filter(member => {
+            if (!member.birthdate) return false;
+            return new Date(member.birthdate).getMonth() === currentMonth;
+        });
+
+        if (monthBirthdays.length === 0) {
+            birthdayList.innerHTML = '<li class="empty-message">No birthdays this month 🎉</li>';
+            return;
+        }
+
+        monthBirthdays.sort((a, b) => new Date(a.birthdate).getDate() - new Date(b.birthdate).getDate());
+
+        birthdayList.innerHTML = monthBirthdays.map(member => {
+            const fullName = `${member.first_name} ${member.last_name}`;
+            const initials = (member.first_name?.[0] || '') + (member.last_name?.[0] || '');
+            const birthDate = new Date(member.birthdate);
+            const displayDate = `${monthNames[birthDate.getMonth()]} ${birthDate.getDate()}, ${birthDate.getFullYear()}`;
+
+            let profileImgHtml = '';
+            if (member.profile_picture) {
+                const { data: { publicUrl } } = supabase.storage.from('member-photos').getPublicUrl(member.profile_picture);
+                profileImgHtml = `<img src="${publicUrl}" class="profile-pic" alt="${fullName}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">`;
+            }
+
+            return `
+                <li class="birthday-item" data-member='${JSON.stringify(member)}' onclick='openBirthdayModal(this)'>
+                    ${profileImgHtml}
+                    <div class="profile-placeholder" style="${member.profile_picture ? 'display:none' : ''}">${initials}</div>
+                    <div class="member-info">
+                        <div class="member-name">${fullName}</div>
+                    </div>
+                    <div class="birthday-date">🎂 ${displayDate}</div>
+                </li>
+            `;
+        }).join('');
+    }
+
+    // Modal handling (unchanged)
+    window.openBirthdayModal = function(element) {
+        const member = JSON.parse(element.dataset.member);
+        const modal = document.getElementById('birthdayModal');
+        const fullName = `${member.first_name} ${member.last_name}`;
+        const birthDate = new Date(member.birthdate);
+        const fullBirthdate = `${monthNames[birthDate.getMonth()]} ${birthDate.getDate()}, ${birthDate.getFullYear()}`;
+
+        document.getElementById('modalName').textContent = fullName;
+        document.getElementById('modalBirthdate').textContent = `🎂 ${fullBirthdate}`;
+
+        const profilePic = document.getElementById('modalProfilePic');
+        const placeholder = document.getElementById('modalPlaceholder');
+        if (member.profile_picture) {
+            const { data: { publicUrl } } = supabase.storage.from('member-photos').getPublicUrl(member.profile_picture);
+            profilePic.src = publicUrl;
+            profilePic.style.display = 'block';
+            placeholder.style.display = 'none';
+        } else {
+            profilePic.style.display = 'none';
+            placeholder.style.display = 'flex';
+            placeholder.textContent = (member.first_name?.[0] || '') + (member.last_name?.[0] || '');
+        }
+
+        const message = `
+            <p>Dear ${member.first_name},</p>
+            <p>On this wonderful day, we celebrate the beautiful gift of your life. You are a cherished part of our church family, and we thank God for the joy and love you bring to everyone around you.</p>
+            <p>May the Lord continue to guide your steps, fill your heart with His peace, and grant you the desires of your heart as you walk in His purpose.</p>
+            <p>As you celebrate another year, remember that God has a perfect plan for your life, and He will never leave you nor forsake you.</p>
+            <p class="card-verse">"The Lord bless you and keep you; the Lord make his face shine on you and be gracious to you; the Lord turn his face toward you and give you peace." – Numbers 6:24-26</p>
+            <p>Once again, happy birthday! May this year be your most blessed yet.</p>
+        `;
+        document.getElementById('modalMessage').innerHTML = message;
+
+        modal.style.display = 'flex';
+        modal.querySelector('.modal-content').scrollTop = 0;
+    };
+
+    window.closeBirthdayModal = function() {
+        document.getElementById('birthdayModal').style.display = 'none';
+    };
+
+    document.getElementById('birthdayModal').addEventListener('click', function(e) {
+        if (e.target === this) closeBirthdayModal();
+    });
+
+    window.downloadBirthdayCard = function() {
+        const card = document.getElementById('birthdayCard');
+        setTimeout(() => {
+            html2canvas(card, { scale: 2, backgroundColor: null, allowTaint: false, useCORS: true }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = 'birthday-card.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            });
+        }, 200);
+    };
+
+    loadAdminProfile();
+    loadStats();
+    loadBirthdays();
+})();
+</script>
+</body>
+</html>
