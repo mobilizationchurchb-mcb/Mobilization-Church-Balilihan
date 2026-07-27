@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login - MCB</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bcryptjs@2.4.3/dist/bcrypt.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .login-card {
+            background: white;
+            border-radius: 24px;
+            padding: 40px 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 420px;
+            text-align: center;
+            animation: fadeInUp 0.6s ease;
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .login-title {
+            font-size: 28px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 6px;
+        }
+        .login-subtitle {
+            font-size: 14px;
+            color: #94a3b8;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #475569;
+            margin-bottom: 8px;
+        }
+        .password-wrapper {
+            position: relative;
+        }
+        .password-wrapper input {
+            width: 100%;
+            padding: 14px 48px 14px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 15px;
+            background: #f8fafc;
+            color: #334155;
+            transition: all 0.3s;
+        }
+        .password-wrapper input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102,126,234,0.1);
+            background: white;
+        }
+        .toggle-password {
+            position: absolute;
+            top: 50%;
+            right: 12px;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            color: #94a3b8;
+            padding: 4px;
+            line-height: 1;
+        }
+        .toggle-password:hover {
+            color: #667eea;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 15px;
+            background: #f8fafc;
+            color: #334155;
+            transition: all 0.3s;
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102,126,234,0.1);
+            background: white;
+        }
+        .error-message {
+            color: #dc2626;
+            font-size: 13px;
+            margin-bottom: 15px;
+            display: none;
+        }
+        .btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(102,126,234,0.3);
+            width: 100%;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102,126,234,0.5);
+        }
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .footer-note {
+            margin-top: 25px;
+            font-size: 12px;
+            color: #94a3b8;
+            text-align: center;
+        }
+        @media (max-width: 500px) {
+            .login-card {
+                padding: 30px 20px;
+            }
+            .login-title {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <h1 class="login-title">Admin Login</h1>
+        <p class="login-subtitle">Mobilization Church Balilihan</p>
+        <div class="error-message" id="errorMessage">Invalid username or password.</div>
+        <form id="loginForm">
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" id="username" placeholder="Enter your username" required>
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <div class="password-wrapper">
+                    <input type="password" id="password" placeholder="Enter your password" required>
+                    <button type="button" class="toggle-password" id="togglePassword">👁</button>
+                </div>
+            </div>
+            <button type="submit" class="btn" id="loginBtn">Sign In</button>
+        </form>
+        <div class="footer-note">
+            Mobilization Church Balilihan © 2026<br>All rights reserved.
+        </div>
+    </div>
+
+    <script>
+    (function() {
+        const SUPABASE_URL = 'https://mjpahhjaefflposesygk.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1qcGFoaGphZWZmbHBvc2VzeWdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ4NjQzMDMsImV4cCI6MjEwMDQ0MDMwM30.cNMzs1TxHKPbWKtY9xZD6W29nSU1ocvm8n5pjE68d1g';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        const form = document.getElementById('loginForm');
+        const errorMsg = document.getElementById('errorMessage');
+        const loginBtn = document.getElementById('loginBtn');
+        const usernameInput = document.getElementById('username');
+        const passwordInput = document.getElementById('password');
+        const toggleBtn = document.getElementById('togglePassword');
+
+        // Rate limiting (admin: 5 attempts → 50 seconds lockout)
+        let failedAttempts = 0;
+        const MAX_ATTEMPTS = 5;
+        const LOCKOUT_TIME = 50 * 1000;
+        let lockoutStart = null;
+        let countdownInterval = null;
+
+        // Toggle password visibility
+        toggleBtn.addEventListener('click', () => {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+        });
+
+        // Check for existing lockout on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            const storedLockout = sessionStorage.getItem('adminLockoutStart');
+            if (storedLockout) {
+                const start = parseInt(storedLockout);
+                const remaining = LOCKOUT_TIME - (Date.now() - start);
+                if (remaining > 0) {
+                    lockoutStart = start;
+                    failedAttempts = MAX_ATTEMPTS;
+                    startCountdown(remaining);
+                } else {
+                    sessionStorage.removeItem('adminLockoutStart');
+                }
+            }
+        });
+
+        function startCountdown(remainingMs) {
+            loginBtn.disabled = true;
+            if (countdownInterval) clearInterval(countdownInterval);
+
+            const updateCountdown = () => {
+                const now = Date.now();
+                const elapsed = now - lockoutStart;
+                const remaining = Math.max(0, LOCKOUT_TIME - elapsed);
+                const seconds = Math.ceil(remaining / 1000);
+                errorMsg.textContent = `Too many failed attempts. Wait ${seconds} second(s).`;
+                errorMsg.style.display = 'block';
+                if (remaining <= 0) {
+                    clearInterval(countdownInterval);
+                    countdownInterval = null;
+                    failedAttempts = 0;
+                    lockoutStart = null;
+                    loginBtn.disabled = false;
+                    errorMsg.style.display = 'none';
+                    sessionStorage.removeItem('adminLockoutStart');
+                }
+            };
+            updateCountdown();
+            countdownInterval = setInterval(updateCountdown, 200);
+        }
+
+        function applyLockout() {
+            lockoutStart = Date.now();
+            sessionStorage.setItem('adminLockoutStart', lockoutStart);
+            startCountdown(LOCKOUT_TIME);
+        }
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // Check lockout
+            if (lockoutStart) {
+                const remaining = LOCKOUT_TIME - (Date.now() - lockoutStart);
+                if (remaining > 0) {
+                    errorMsg.textContent = `Too many failed attempts. Wait ${Math.ceil(remaining/1000)} second(s).`;
+                    errorMsg.style.display = 'block';
+                    return;
+                } else {
+                    clearInterval(countdownInterval);
+                    countdownInterval = null;
+                    failedAttempts = 0;
+                    lockoutStart = null;
+                    loginBtn.disabled = false;
+                    sessionStorage.removeItem('adminLockoutStart');
+                }
+            }
+
+            const username = usernameInput.value.trim();
+            const password = passwordInput.value.trim();
+
+            if (!username || !password) {
+                errorMsg.textContent = 'Please enter both username and password.';
+                errorMsg.style.display = 'block';
+                return;
+            }
+
+            loginBtn.disabled = true;
+            loginBtn.textContent = 'Signing in...';
+            errorMsg.style.display = 'none';
+
+            try {
+                // 1) Try the secure database function first
+                const { data: rpcData, error: rpcError } = await supabase.rpc('admin_login', {
+                    login_username: username,
+                    pwd: password
+                });
+
+                if (!rpcError && rpcData && rpcData.success) {
+                    handleAdminLoginSuccess(rpcData.admin);
+                    return;
+                }
+
+                // 2) Fallback to direct query with bcryptjs
+                console.warn('admin_login RPC failed, falling back to direct check');
+                const { data: admins, error: queryError } = await supabase
+                    .from('admin_users')
+                    .select('*')
+                    .eq('username', username)
+                    .maybeSingle();
+
+                if (queryError) throw queryError;
+                if (!admins) throw new Error('Admin not found');
+
+                const isMatch = bcrypt.compareSync(password, admins.hashed_password);
+                if (!isMatch) throw new Error('Invalid password');
+
+                handleAdminLoginSuccess(admins);
+            } catch (err) {
+                console.error('Admin login error:', err);
+                failedAttempts++;
+                if (failedAttempts >= MAX_ATTEMPTS) {
+                    applyLockout();
+                } else {
+                    errorMsg.textContent = 'Invalid username or password.';
+                    errorMsg.style.display = 'block';
+                }
+            } finally {
+                if (!lockoutStart) {
+                    loginBtn.disabled = false;
+                }
+                loginBtn.textContent = 'Sign In';
+            }
+        });
+
+        function handleAdminLoginSuccess(admin) {
+            // Clear lockout
+            if (countdownInterval) clearInterval(countdownInterval);
+            sessionStorage.removeItem('adminLockoutStart');
+            failedAttempts = 0;
+            lockoutStart = null;
+
+            // Store session in sessionStorage (more secure)
+            sessionStorage.setItem('adminLoggedIn', 'true');
+            sessionStorage.setItem('adminUsername', admin.username);
+            sessionStorage.setItem('adminRole', admin.role || '');
+
+            // Redirect to admin dashboard
+            window.location.href = 'index.html';
+        }
+    })();
+    </script>
+</body>
+</html>
