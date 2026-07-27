@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Member Users - MCB</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 1200px;
+            margin: 0 auto;
+            animation: fadeInUp 0.6s ease;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .table-title {
+            font-size: 28px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 5px;
+        }
+
+        .table-subtitle {
+            font-size: 14px;
+            color: #94a3b8;
+            margin-bottom: 25px;
+            font-weight: 400;
+        }
+
+        .search-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .search-bar input, .search-bar select {
+            padding: 10px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 14px;
+            background: #f8fafc;
+            color: #334155;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .search-bar input:focus, .search-bar select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102,126,234,0.1);
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            white-space: nowrap;
+        }
+
+        th {
+            background: #f8fafc;
+            color: #475569;
+            font-weight: 600;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 14px 16px;
+            text-align: left;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #f1f5f9;
+            color: #334155;
+            font-size: 14px;
+        }
+
+        tr:hover td {
+            background: #f8fafc;
+        }
+
+        .profile-cell {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .profile-img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #e2e8f0;
+            background: #f1f5f9;
+        }
+
+        .profile-placeholder {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-action {
+            padding: 6px 12px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .btn-view {
+            background: #e0f2fe;
+            color: #0284c7;
+        }
+        .btn-view:hover {
+            background: #bae6fd;
+            transform: translateY(-1px);
+        }
+
+        .btn-edit {
+            background: #fef3c7;
+            color: #b45309;
+        }
+        .btn-edit:hover {
+            background: #fde68a;
+            transform: translateY(-1px);
+        }
+
+        .btn-delete {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+        .btn-delete:hover {
+            background: #fecaca;
+            transform: translateY(-1px);
+        }
+
+        .loading-row td {
+            text-align: center;
+            padding: 30px;
+            color: #94a3b8;
+        }
+
+        .empty-row td {
+            text-align: center;
+            padding: 30px;
+            color: #94a3b8;
+        }
+
+        @media (max-width: 768px) {
+            .table-container {
+                padding: 20px 15px;
+                border-radius: 16px;
+            }
+            .table-title {
+                font-size: 22px;
+            }
+            th, td {
+                padding: 10px 12px;
+                font-size: 13px;
+            }
+            .action-buttons {
+                flex-direction: column;
+                gap: 4px;
+            }
+            .btn-action {
+                padding: 6px 10px;
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="main-content">
+        <div class="table-container">
+            <h1 class="table-title">Member Users</h1>
+            <p class="table-subtitle">Manage all registered members of Mobilization Church Balilihan. View details, edit information, or remove members.</p>
+
+            <div class="search-bar">
+                <input type="text" id="searchInput" placeholder="Search by name or email...">
+                <select id="roleFilter">
+                    <option value="">All Roles</option>
+                    <option value="program">📋 Program</option>
+                    <option value="music">🎵 Music</option>
+                    <option value="pastoral">⛪ Pastoral</option>
+                    <option value="member">👤 Member</option>
+                    <option value="treasurer">💰 Treasurer</option>
+                </select>
+            </div>
+
+            <div class="table-wrapper">
+                <table id="membersTable">
+                    <thead>
+                        <tr>
+                            <th>Profile</th>
+                            <th>Full Name</th>
+                            <th>Role</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <tr class="loading-row">
+                            <td colspan="4">Loading members...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="admin_navbar.js"></script>
+    <script>
+    (function() {
+        const SUPABASE_URL = 'https://mjpahhjaefflposesygk.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1qcGFoaGphZWZmbHBvc2VzeWdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ4NjQzMDMsImV4cCI6MjEwMDQ0MDMwM30.cNMzs1TxHKPbWKtY9xZD6W29nSU1ocvm8n5pjE68d1g';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        const tableBody = document.getElementById('tableBody');
+        const searchInput = document.getElementById('searchInput');
+        const roleFilter = document.getElementById('roleFilter');
+
+        let allMembers = [];
+
+        async function fetchMembers() {
+            tableBody.innerHTML = `<tr class="loading-row"><td colspan="4">Loading members...</td></tr>`;
+            let query = supabase.from('members').select('*').order('last_name', { ascending: true });
+
+            const { data, error } = await query;
+            if (error) {
+                console.error('Fetch error:', error);
+                tableBody.innerHTML = `<tr class="empty-row"><td colspan="4">Failed to load members. Please try again.</td></tr>`;
+                return;
+            }
+            allMembers = data || [];
+            renderTable(allMembers);
+        }
+
+        function renderTable(members) {
+            if (members.length === 0) {
+                tableBody.innerHTML = `<tr class="empty-row"><td colspan="4">No members found.</td></tr>`;
+                return;
+            }
+
+            tableBody.innerHTML = members.map(member => {
+                const fullName = `${member.first_name || ''} ${member.last_name || ''}`.trim();
+                const initials = (member.first_name?.[0] || '') + (member.last_name?.[0] || '');
+                const profilePic = member.profile_picture 
+                    ? supabase.storage.from('member-photos').getPublicUrl(member.profile_picture).data.publicUrl
+                    : null;
+
+                // Updated role display to include member and treasurer
+                const roleDisplay = member.role === 'program' ? '📋 Program' :
+                                    member.role === 'music' ? '🎵 Music' :
+                                    member.role === 'pastoral' ? '⛪ Pastoral' :
+                                    member.role === 'member' ? '👤 Member' :
+                                    member.role === 'treasurer' ? '💰 Treasurer' :
+                                    member.role;
+
+                return `
+                    <tr>
+                        <td>
+                            <div class="profile-cell">
+                                ${profilePic 
+                                    ? `<img src="${profilePic}" alt="${fullName}" class="profile-img" onerror="this.onerror=null;this.replaceWith(document.createElement('div'));this.className='profile-placeholder';this.textContent='${initials}';">` 
+                                    : `<div class="profile-placeholder">${initials}</div>`
+                                }
+                            </div>
+                        </td>
+                        <td>${fullName}</td>
+                        <td>${roleDisplay}</td>
+                        <td>
+                            <div class="action-buttons">
+                                <a href="view.html?id=${member.id}" class="btn-action btn-view">👁️ View</a>
+                                <a href="edit_member.html?id=${member.id}" class="btn-action btn-edit">✏️ Edit</a>
+                                <button class="btn-action btn-delete" onclick="deleteMember('${member.id}', '${fullName}')">🗑️ Delete</button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        window.deleteMember = async function(id, name) {
+            if (!confirm(`Are you sure you want to delete ${name}? This action cannot be undone.`)) return;
+
+            const { error } = await supabase.from('members').delete().eq('id', id);
+            if (error) {
+                alert('Error deleting member: ' + error.message);
+            } else {
+                alert('Member deleted successfully.');
+                fetchMembers();
+            }
+        };
+
+        function filterMembers() {
+            const searchTerm = searchInput.value.toLowerCase();
+            const role = roleFilter.value;
+            const filtered = allMembers.filter(member => {
+                const fullName = `${member.first_name || ''} ${member.last_name || ''}`.toLowerCase();
+                const matchesSearch = fullName.includes(searchTerm) || (member.email || '').toLowerCase().includes(searchTerm);
+                const matchesRole = !role || member.role === role;
+                return matchesSearch && matchesRole;
+            });
+            renderTable(filtered);
+        }
+
+        searchInput.addEventListener('input', filterMembers);
+        roleFilter.addEventListener('change', filterMembers);
+
+        fetchMembers();
+    })();
+    </script>
+</body>
+</html>
