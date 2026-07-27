@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Member Profile - MCB</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+
+        .profile-wrapper {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Cover area */
+        .cover-photo {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 20px 20px 0 0;
+            position: relative;
+            overflow: hidden;
+        }
+        .cover-photo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        /* Profile picture */
+        .profile-pic-container {
+            display: flex;
+            justify-content: center;
+            margin-top: -60px;
+            position: relative;
+            z-index: 10;
+        }
+        .profile-pic {
+            width: 130px;
+            height: 130px;
+            border-radius: 50%;
+            border: 5px solid white;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+            object-fit: cover;
+            background: #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 52px;
+            color: white;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+        }
+
+        /* Info card */
+        .info-card {
+            background: white;
+            border-radius: 0 0 20px 20px;
+            padding: 35px 25px 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-top: -10px;
+        }
+
+        .member-name {
+            font-size: 26px;
+            font-weight: 700;
+            color: #1e293b;
+            text-align: center;
+            margin-bottom: 4px;
+        }
+        .member-nickname {
+            font-size: 15px;
+            color: #64748b;
+            text-align: center;
+            font-style: italic;
+            margin-bottom: 15px;
+        }
+
+        .role-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 6px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            margin: 0 auto 20px;
+            text-align: center;
+            display: table;
+        }
+
+        .details-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 14px;
+            margin-top: 20px;
+        }
+        .detail-item {
+            background: #f8fafc;
+            padding: 14px 18px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .detail-label {
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #94a3b8;
+        }
+        .detail-value {
+            font-size: 16px;
+            color: #334155;
+            font-weight: 500;
+            text-align: right;
+            word-break: break-word;
+            max-width: 60%;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            text-decoration: none;
+            margin: 20px auto 30px;
+            transition: all 0.3s ease;
+            width: fit-content;
+            display: flex;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .back-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .loading-spinner {
+            text-align: center;
+            padding: 50px;
+            color: #1e293b;
+            font-size: 18px;
+        }
+
+        /* Mobile optimizations */
+        @media (max-width: 500px) {
+            .cover-photo {
+                height: 160px;
+            }
+            .profile-pic {
+                width: 110px;
+                height: 110px;
+                font-size: 42px;
+                border-width: 4px;
+            }
+            .profile-pic-container {
+                margin-top: -55px;
+            }
+            .info-card {
+                padding: 30px 18px 20px;
+            }
+            .member-name {
+                font-size: 22px;
+            }
+            .detail-item {
+                padding: 12px 14px;
+            }
+            .detail-label {
+                font-size: 12px;
+            }
+            .detail-value {
+                font-size: 15px;
+                max-width: 65%;
+            }
+            .back-btn {
+                width: calc(100% - 40px);
+                margin-top: 15px;
+                margin-bottom: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="main-content">
+        <div class="profile-wrapper" id="profileContainer">
+            <div class="loading-spinner">Loading profile...</div>
+        </div>
+        <a href="table.html" class="back-btn">← Back to Members</a>
+    </div>
+
+    <script src="admin_navbar.js"></script>
+    <script>
+    (function() {
+        const SUPABASE_URL = 'https://mjpahhjaefflposesygk.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1qcGFoaGphZWZmbHBvc2VzeWdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ4NjQzMDMsImV4cCI6MjEwMDQ0MDMwM30.cNMzs1TxHKPbWKtY9xZD6W29nSU1ocvm8n5pjE68d1g';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const memberId = urlParams.get('id');
+        const profileContainer = document.getElementById('profileContainer');
+
+        if (!memberId) {
+            profileContainer.innerHTML = '<div class="loading-spinner">No member ID provided.</div>';
+            return;
+        }
+
+        async function loadProfile() {
+            const { data: member, error } = await supabase
+                .from('members')
+                .select('*')
+                .eq('id', memberId)
+                .single();
+
+            if (error || !member) {
+                profileContainer.innerHTML = '<div class="loading-spinner">Member not found.</div>';
+                return;
+            }
+
+            const fullName = `${member.first_name} ${member.last_name}`;
+            const initials = (member.first_name?.[0] || '') + (member.last_name?.[0] || '');
+
+            let coverUrl = '';
+            let profileUrl = '';
+
+            if (member.background_picture) {
+                const { data: { publicUrl } } = supabase.storage
+                    .from('member-photos')
+                    .getPublicUrl(member.background_picture);
+                coverUrl = publicUrl;
+            }
+
+            if (member.profile_picture) {
+                const { data: { publicUrl } } = supabase.storage
+                    .from('member-photos')
+                    .getPublicUrl(member.profile_picture);
+                profileUrl = publicUrl;
+            }
+
+            // Updated role display to include member and treasurer
+            const roleDisplay = member.role === 'program' ? '📋 Program' :
+                                member.role === 'music' ? '🎵 Music' :
+                                member.role === 'pastoral' ? '⛪ Pastoral' :
+                                member.role === 'member' ? '👤 Member' :
+                                member.role === 'treasurer' ? '💰 Treasurer' :
+                                member.role;
+
+            profileContainer.innerHTML = `
+                <div class="cover-photo">
+                    ${coverUrl ? `<img src="${coverUrl}" alt="cover">` : ''}
+                </div>
+                <div class="profile-pic-container">
+                    <div class="profile-pic" style="background-image: ${profileUrl ? `url(${profileUrl})` : 'none'}; background-size: cover; background-position: center;">
+                        ${!profileUrl ? initials : ''}
+                    </div>
+                </div>
+                <div class="info-card">
+                    <div class="member-name">${fullName}</div>
+                    ${member.nickname ? `<div class="member-nickname">"${member.nickname}"</div>` : ''}
+                    <div class="role-badge">${roleDisplay}</div>
+                    <div class="details-grid">
+                        <div class="detail-item">
+                            <span class="detail-label">ID Number</span>
+                            <span class="detail-value">${member.id_number}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Email</span>
+                            <span class="detail-value">${member.email}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Birthdate</span>
+                            <span class="detail-value">${new Date(member.birthdate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Age</span>
+                            <span class="detail-value">${member.age || 'N/A'}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Username</span>
+                            <span class="detail-value">${member.username}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Member Since</span>
+                            <span class="detail-value">${new Date(member.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        loadProfile();
+    })();
+    </script>
+</body>
+</html>
