@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Member - MCB</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .edit-container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 750px;
+            margin: 0 auto;
+            animation: fadeInUp 0.6s ease;
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .edit-title {
+            font-size: 28px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 5px;
+        }
+        .edit-subtitle {
+            font-size: 14px;
+            color: #94a3b8;
+            margin-bottom: 30px;
+            font-weight: 400;
+        }
+        .upload-area {
+            border: 2px dashed #e2e8f0;
+            border-radius: 16px;
+            padding: 25px;
+            text-align: center;
+            margin-bottom: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #f8fafc;
+        }
+        .upload-area:hover {
+            border-color: #667eea;
+            background: #f0f0ff;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102,126,234,0.15);
+        }
+        .upload-area p {
+            color: #64748b;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .upload-area img {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 12px;
+            margin-top: 15px;
+            display: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .form-group {
+            margin-bottom: 22px;
+        }
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            color: #475569;
+            margin-bottom: 8px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            background: #f8fafc;
+            color: #334155;
+        }
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 4px rgba(102,126,234,0.1);
+        }
+        .form-row {
+            display: flex;
+            gap: 15px;
+        }
+        .form-row .form-group {
+            flex: 1;
+        }
+        .btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 14px 35px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102,126,234,0.3);
+            margin-right: 10px;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102,126,234,0.5);
+        }
+        .btn-secondary {
+            background: #f1f5f9;
+            color: #64748b;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .btn-secondary:hover {
+            background: #e2e8f0;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+        .loading-spinner {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: fadeInUp 0.3s ease;
+        }
+        .loading-circle {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #e2e8f0;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 15px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .success-message {
+            display: none;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            padding: 18px 24px;
+            border-radius: 12px;
+            text-align: center;
+            margin-top: 25px;
+            font-weight: 500;
+            box-shadow: 0 4px 15px rgba(16,185,129,0.3);
+            animation: slideIn 0.4s ease;
+        }
+        @media (max-width: 768px) {
+            .edit-container {
+                padding: 25px 18px;
+                border-radius: 16px;
+                margin: 0 5px;
+            }
+            .edit-title {
+                font-size: 22px;
+            }
+            .form-row {
+                flex-direction: column;
+                gap: 0;
+            }
+            .form-group input, .form-group select {
+                font-size: 16px;
+                padding: 14px 16px;
+            }
+            .btn {
+                width: 100%;
+                padding: 16px;
+                font-size: 16px;
+                margin: 0 0 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-spinner">
+        <div class="loading-circle"></div>
+        <p>Saving changes...</p>
+    </div>
+</div>
+
+<div id="main-content">
+    <div class="edit-container">
+        <h1 class="edit-title">Edit Member</h1>
+        <p class="edit-subtitle">Update the information of this church member. Leave fields unchanged if not modifying.</p>
+
+        <form id="editForm">
+            <div class="upload-area" id="profileUpload">
+                <p>📷 Click to change profile picture</p>
+                <img id="profilePreview" alt="Profile preview">
+                <input type="file" id="profileInput" accept="image/*" style="display:none">
+            </div>
+
+            <div class="upload-area" id="bgUpload">
+                <p>🖼️ Click to change background picture</p>
+                <img id="bgPreview" alt="Background preview">
+                <input type="file" id="bgInput" accept="image/*" style="display:none">
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>First Name *</label>
+                    <input type="text" id="firstName" required>
+                </div>
+                <div class="form-group" style="flex:0.3">
+                    <label>M.I.</label>
+                    <input type="text" id="middleInitial" maxlength="1">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Last Name *</label>
+                <input type="text" id="lastName" required>
+            </div>
+
+            <div class="form-group">
+                <label>Nickname</label>
+                <input type="text" id="nickname">
+            </div>
+
+            <div class="form-group">
+                <label>Birthdate *</label>
+                <input type="date" id="birthdate" required>
+            </div>
+
+            <div class="form-group">
+                <label>Email *</label>
+                <input type="email" id="email" required>
+            </div>
+
+            <div class="form-group">
+                <label>Role *</label>
+                <select id="role" required>
+                    <option value="">Select role</option>
+                    <option value="program">📋 Program</option>
+                    <option value="music">🎵 Music</option>
+                    <option value="pastoral">⛪ Pastoral</option>
+                    <option value="member">👤 Member</option>
+                    <option value="treasurer">💰 Treasurer</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn">💾 Update Member</button>
+            <a href="table.html" class="btn btn-secondary" style="display:inline-block;text-decoration:none;">← Back to Table</a>
+        </form>
+
+        <div class="success-message" id="successMessage">
+            ✅ Member updated successfully!
+        </div>
+    </div>
+</div>
+
+<script src="admin_navbar.js"></script>
+<script>
+(function() {
+    const SUPABASE_URL = 'https://mjpahhjaefflposesygk.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1qcGFoaGphZWZmbHBvc2VzeWdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ4NjQzMDMsImV4cCI6MjEwMDQ0MDMwM30.cNMzs1TxHKPbWKtY9xZD6W29nSU1ocvm8n5pjE68d1g';
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const memberId = urlParams.get('id');
+    if (!memberId) {
+        alert('No member ID provided.');
+        window.location.href = 'table.html';
+    }
+
+    let currentProfileUrl = null;
+    let currentBgUrl = null;
+    let profileFile = null;
+    let bgFile = null;
+
+    // Unified upload function
+    async function uploadImage(file, folder) {
+        if (!file) return null;
+        const fileName = `${folder}/${memberId}_${Date.now()}`;
+        const { data, error } = await supabase.storage
+            .from('member-photos')
+            .upload(fileName, file, { upsert: true });
+        if (error) {
+            console.error(`Upload error (${folder}):`, error);
+            return null;
+        }
+        return data.path;
+    }
+
+    // Load existing member data
+    async function loadMember() {
+        const { data: member, error } = await supabase
+            .from('members')
+            .select('*')
+            .eq('id', memberId)
+            .single();
+
+        if (error || !member) {
+            alert('Member not found.');
+            window.location.href = 'table.html';
+            return;
+        }
+
+        document.getElementById('firstName').value = member.first_name || '';
+        document.getElementById('middleInitial').value = member.middle_initial || '';
+        document.getElementById('lastName').value = member.last_name || '';
+        document.getElementById('nickname').value = member.nickname || '';
+        document.getElementById('birthdate').value = member.birthdate || '';
+        document.getElementById('email').value = member.email || '';
+        document.getElementById('role').value = member.role || '';
+
+        currentProfileUrl = member.profile_picture;
+        currentBgUrl = member.background_picture;
+
+        if (currentProfileUrl) {
+            const { data: { publicUrl } } = supabase.storage
+                .from('member-photos')
+                .getPublicUrl(currentProfileUrl);
+            const img = document.getElementById('profilePreview');
+            img.src = publicUrl;
+            img.style.display = 'block';
+        }
+
+        if (currentBgUrl) {
+            const { data: { publicUrl } } = supabase.storage
+                .from('member-photos')
+                .getPublicUrl(currentBgUrl);
+            const img = document.getElementById('bgPreview');
+            img.src = publicUrl;
+            img.style.display = 'block';
+        }
+    }
+
+    // File input handlers
+    document.getElementById('profileUpload').addEventListener('click', () => document.getElementById('profileInput').click());
+    document.getElementById('bgUpload').addEventListener('click', () => document.getElementById('bgInput').click());
+
+    document.getElementById('profileInput').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            profileFile = file;
+            const reader = new FileReader();
+            reader.onload = function(ev) {
+                const img = document.getElementById('profilePreview');
+                img.src = ev.target.result;
+                img.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    document.getElementById('bgInput').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            bgFile = file;
+            const reader = new FileReader();
+            reader.onload = function(ev) {
+                const img = document.getElementById('bgPreview');
+                img.src = ev.target.result;
+                img.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    document.getElementById('editForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        loadingOverlay.style.display = 'flex';
+
+        const firstName = document.getElementById('firstName').value;
+        const middleInitial = document.getElementById('middleInitial').value;
+        const lastName = document.getElementById('lastName').value;
+        const nickname = document.getElementById('nickname').value;
+        const birthdate = document.getElementById('birthdate').value;
+        const email = document.getElementById('email').value;
+        const role = document.getElementById('role').value;
+        const age = calculateAge(birthdate);
+        const username = role + '_' + firstName.toLowerCase().replace(/\s+/g, '') + age;
+
+        // Upload images
+        const profileUrl = await uploadImage(profileFile, 'profiles') || currentProfileUrl;
+        const bgUrl = await uploadImage(bgFile, 'backgrounds') || currentBgUrl;
+
+        // Build updated data – note: we do NOT include hashed_password here,
+        // as we're not changing the password in this edit form.
+        // If you later add a password change field, send plain password
+        // and the database trigger will hash it automatically.
+        const updatedData = {
+            first_name: firstName,
+            middle_initial: middleInitial,
+            last_name: lastName,
+            nickname,
+            birthdate,
+            age,
+            email,
+            role,
+            username,
+            profile_picture: profileUrl,
+            background_picture: bgUrl,
+            updated_at: new Date().toISOString()
+        };
+
+        const { error: updateError } = await supabase
+            .from('members')
+            .update(updatedData)
+            .eq('id', memberId);
+
+        loadingOverlay.style.display = 'none';
+
+        if (updateError) {
+            alert('Error updating member: ' + updateError.message);
+        } else {
+            const success = document.getElementById('successMessage');
+            success.style.display = 'block';
+            setTimeout(() => success.style.display = 'none', 3000);
+
+            profileFile = null;
+            bgFile = null;
+            document.getElementById('profileInput').value = '';
+            document.getElementById('bgInput').value = '';
+            currentProfileUrl = profileUrl;
+            currentBgUrl = bgUrl;
+        }
+    });
+
+    function calculateAge(birthdate) {
+        const today = new Date();
+        const birth = new Date(birthdate);
+        let age = today.getFullYear() - birth.getFullYear();
+        const m = today.getMonth() - birth.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+        return age;
+    }
+
+    loadMember();
+})();
+</script>
+</body>
+</html>
