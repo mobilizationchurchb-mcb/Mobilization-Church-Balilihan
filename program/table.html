@@ -6,31 +6,25 @@
     <title>Program List - MCB</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Inter:wght@400;600&family=Playfair+Display:ital,wght@0,700;1,400&family=Plus+Jakarta+Sans:wght@700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body { font-family: 'Poppins', sans-serif; }
-        /* Full‑screen on mobile: remove the navbar’s inner padding */
-        @media (max-width: 767px) {
-            #main-content {
-                padding: 0 !important;
-            }
-        }
+        @media (max-width: 767px) { #main-content { padding: 0 !important; } }
     </style>
 </head>
 <body class="bg-gradient-to-br from-blue-50 to-blue-100 min-h-screen">
 
-    <!-- Content will be wrapped inside #main-content by program_navbar.js -->
     <div class="w-full px-2 py-6 md:px-6">
         <div class="max-w-7xl mx-auto">
-            <!-- Header -->
             <div class="mb-8">
                 <h1 class="text-3xl font-bold text-blue-700">Program</h1>
-                <p class="text-sm text-blue-400 mt-2">Manage all your created Sunday programs. You can view, edit, or delete any entry.</p>
+                <p class="text-sm text-blue-400 mt-2">Manage all your created Sunday programs. You can view, edit, delete or download a blank template.</p>
             </div>
 
-            <!-- Filter bar – aligned left on all screens -->
             <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
-                <div class="flex flex-col sm:flex-row gap-4 items-start">
+                <div class="flex flex-col sm:flex-row gap-4 items-start justify-between">
                     <div class="w-full sm:w-64">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Filter by Month</label>
                         <select id="monthFilter" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
@@ -49,6 +43,9 @@
                             <option value="12">December</option>
                         </select>
                     </div>
+                    <button id="downloadTemplateBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-6 py-2.5 rounded-lg transition flex items-center gap-2">
+                        📄 Download Blank Template
+                    </button>
                 </div>
             </div>
 
@@ -65,9 +62,7 @@
                             </tr>
                         </thead>
                         <tbody id="programTableBody" class="bg-white divide-y divide-gray-200">
-                            <tr>
-                                <td colspan="4" class="px-6 py-4 text-center text-sm text-gray-400">Loading...</td>
-                            </tr>
+                            <tr><td colspan="4" class="px-6 py-4 text-center text-sm text-gray-400">Loading...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -75,7 +70,6 @@
         </div>
     </div>
 
-    <!-- program_navbar.js must be in the same folder -->
     <script src="program_navbar.js"></script>
 
     <script>
@@ -83,43 +77,35 @@
         const SUPABASE_URL = 'https://mjpahhjaefflposesygk.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1qcGFoaGphZWZmbHBvc2VzeWdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ4NjQzMDMsImV4cCI6MjEwMDQ0MDMwM30.cNMzs1TxHKPbWKtY9xZD6W29nSU1ocvm8n5pjE68d1g';
 
-        // Session
         const memberId = localStorage.getItem('memberId');
         const isLoggedIn = localStorage.getItem('memberLoggedIn') === 'true';
         const role = localStorage.getItem('memberRole');
-
         if (!isLoggedIn || !memberId || role !== 'program') {
             window.location.href = '../portal_login.html';
             return;
         }
 
-        // Supabase client with RLS header
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
             global: { headers: { 'x-member-id': memberId } }
         });
-
         const tbody = document.getElementById('programTableBody');
         const monthFilter = document.getElementById('monthFilter');
         let allPrograms = [];
 
-        // Format date helper
         function formatDate(dateStr) {
             if (!dateStr) return '';
             const d = new Date(dateStr);
             return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
         }
 
-        // Fetch programs
         async function fetchPrograms() {
             tbody.innerHTML = `<tr><td colspan="4" class="px-6 py-4 text-center text-sm text-gray-400">Loading...</td></tr>`;
             const { data, error } = await supabase
                 .from('sunday_programs')
                 .select('*')
                 .order('program_date', { ascending: false });
-
             if (error) {
                 tbody.innerHTML = `<tr><td colspan="4" class="px-6 py-4 text-center text-sm text-red-500">Error loading programs</td></tr>`;
-                console.error(error);
                 return;
             }
             allPrograms = data || [];
@@ -131,7 +117,6 @@
                 tbody.innerHTML = `<tr><td colspan="4" class="px-6 py-4 text-center text-sm text-gray-400">No programs found.</td></tr>`;
                 return;
             }
-
             tbody.innerHTML = programs.map(prog => `
                 <tr class="hover:bg-gray-50 transition">
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${prog.mc_name || '—'}</td>
@@ -148,39 +133,148 @@
             `).join('');
         }
 
-        // Filter by month
         monthFilter.addEventListener('change', function() {
             const month = this.value;
-            if (!month) {
-                renderTable(allPrograms);
-                return;
-            }
+            if (!month) { renderTable(allPrograms); return; }
             const filtered = allPrograms.filter(prog => {
                 if (!prog.program_date) return false;
-                const progMonth = new Date(prog.program_date).getMonth() + 1; // JavaScript months 0-11
+                const progMonth = new Date(prog.program_date).getMonth() + 1;
                 return progMonth === parseInt(month);
             });
             renderTable(filtered);
         });
 
-        // Delete function (exposed globally)
         window.deleteProgram = async function(programId) {
             if (!confirm('Are you sure you want to delete this program? This action cannot be undone.')) return;
-
             const { error } = await supabase
                 .from('sunday_programs')
                 .delete()
                 .eq('id', programId);
-
-            if (error) {
-                alert('Error deleting program: ' + error.message);
-            } else {
+            if (error) { alert('Error deleting program: ' + error.message); }
+            else {
                 alert('Program deleted successfully.');
-                fetchPrograms(); // refresh
+                fetchPrograms();
             }
         };
 
-        // Initial load
+        // ---- Download blank template (PORTRAIT, ALL BLACK, short bond paper style) ----
+        document.getElementById('downloadTemplateBtn').addEventListener('click', function() {
+            const tempDiv = document.createElement('div');
+            tempDiv.style.position = 'fixed';
+            tempDiv.style.left = '-9999px';
+            tempDiv.style.top = '0';
+            tempDiv.style.width = '216mm';   // Short bond paper width (portrait)
+            tempDiv.style.height = '279mm';  // Short bond paper height
+            tempDiv.style.padding = '12mm 15mm';
+            tempDiv.style.boxSizing = 'border-box';
+            tempDiv.style.background = 'white';
+            tempDiv.style.fontFamily = 'Arial, sans-serif';
+            tempDiv.style.color = '#000000';
+            tempDiv.style.fontSize = '14px';
+            tempDiv.style.fontWeight = 'bold';
+            tempDiv.style.lineHeight = '1.6';
+
+            tempDiv.innerHTML = `
+                <div style="text-align:center; margin-bottom:20px; border-bottom:2px solid #000; padding-bottom:12px;">
+                    <div style="display:flex; align-items:center; justify-content:center; gap:15px; margin-bottom:8px;">
+                        <img src="mcb.jpg" alt="MCB Logo" style="width:70px; height:70px; object-fit:cover; border-radius:50%; border:2px solid #000;" onerror="this.style.display='none'">
+                        <div>
+                            <h1 style="font-family:'Cinzel',serif; font-size:22px; color:#000; margin:0; font-weight:bold;">Mobilization Church Balilihan</h1>
+                            <div style="font-family:'Plus Jakarta Sans',sans-serif; font-size:12px; font-weight:600; color:#000; text-transform:uppercase; letter-spacing:2px;">Saling, Balilihan, Bohol</div>
+                        </div>
+                    </div>
+                    <h2 style="font-family:'Cinzel',serif; font-size:20px; color:#000; margin-top:12px; letter-spacing:3px; font-weight:800;">SUNDAY PROGRAM</h2>
+                    <div style="display:flex; justify-content:space-between; margin-top:12px; font-family:'Plus Jakarta Sans',sans-serif; font-weight:800; font-size:13px; color:#000;">
+                        <div>MC: ________________________</div>
+                        <div>DATE: ________________________</div>
+                    </div>
+                </div>
+
+                <div>
+                    <div style="margin-bottom:8px;">
+                        <div style="font-family:'Plus Jakarta Sans',sans-serif; font-weight:800; font-size:13px; text-transform:uppercase; color:#000; border-bottom:1px solid #ccc; margin-bottom:4px; padding-bottom:2px; letter-spacing:1px;">Part I: Sunday School</div>
+                        <div style="display:flex; justify-content:space-between; margin-bottom:2px;"><span>Teacher</span><div style="flex-grow:1; border-bottom:1px dotted #000; margin:0 8px;"></div><span>_______________</span></div>
+                    </div>
+                    <div style="margin-bottom:8px;">
+                        <div style="font-family:'Plus Jakarta Sans',sans-serif; font-weight:800; font-size:13px; text-transform:uppercase; color:#000; border-bottom:1px solid #ccc; margin-bottom:4px; padding-bottom:2px; letter-spacing:1px;">Part II: Sunday Service</div>
+                        <div style="text-align:center; margin-bottom:4px;"><span>Welcome Address</span><br><span>_______________</span></div>
+                        <div style="text-align:center; margin-bottom:4px;"><span>Testimony</span><br><span>_______________</span></div>
+                        <div style="display:flex; justify-content:space-between; margin-bottom:2px;"><span>Scripture</span><div style="flex-grow:1; border-bottom:1px dotted #000; margin:0 8px;"></div><span>_______________</span></div>
+                        <div style="display:flex; justify-content:space-between; margin-bottom:2px;"><span>Opening Song</span><div style="flex-grow:1; border-bottom:1px dotted #000; margin:0 8px;"></div><span>_______________</span></div>
+                        <div style="display:flex; justify-content:space-between; margin-bottom:2px;"><span>Opening Prayer</span><div style="flex-grow:1; border-bottom:1px dotted #000; margin:0 8px;"></div><span>_______________</span></div>
+                    </div>
+                    <div style="margin-bottom:8px;">
+                        <div style="font-family:'Plus Jakarta Sans',sans-serif; font-weight:800; font-size:13px; text-transform:uppercase; color:#000; border-bottom:1px solid #ccc; margin-bottom:4px; padding-bottom:2px; letter-spacing:1px;">Praise and Worship</div>
+                        <div style="display:flex; justify-content:space-between; margin-bottom:2px;"><span>Worship Leader</span><div style="flex-grow:1; border-bottom:1px dotted #000; margin:0 8px;"></div><span>_______________</span></div>
+                    </div>
+                    <div style="margin-bottom:8px; text-align:center;">
+                        <div style="text-align:left; font-family:'Plus Jakarta Sans',sans-serif; font-weight:800; font-size:13px; text-transform:uppercase; color:#000; border-bottom:1px solid #ccc; margin-bottom:4px; padding-bottom:2px; letter-spacing:1px;">The Word of God</div>
+                        <span style="font-size:11px; color:#000; text-transform:uppercase;">Host Pastor</span>
+                        <h2 style="font-family:'Playfair Display',serif; font-weight:700; font-size:18px; color:#000; margin:4px 0;">_______________</h2>
+                    </div>
+                    <div style="margin-bottom:8px; border:1px dashed #000; padding:8px; border-radius:8px; text-align:center;">
+                        <div style="text-align:left; font-family:'Plus Jakarta Sans',sans-serif; font-weight:800; font-size:13px; text-transform:uppercase; color:#000; border:none; margin-bottom:4px;">The Holy Communion</div>
+                        <p style="margin:0; font-size:13px; font-style:italic;">"Do this in remembrance of Me."</p>
+                        <span style="font-size:13px; color:#000; font-weight:bold;">Officiating: _______________</span>
+                    </div>
+                    <div style="margin-bottom:8px;">
+                        <div style="font-family:'Plus Jakarta Sans',sans-serif; font-weight:800; font-size:13px; text-transform:uppercase; color:#000; border-bottom:1px solid #ccc; margin-bottom:4px; padding-bottom:2px; letter-spacing:1px;">Tithes and Offering</div>
+                        <div style="display:flex; justify-content:space-between; margin-bottom:2px;"><span>Short Exhortation / Prayer</span><div style="flex-grow:1; border-bottom:1px dotted #000; margin:0 8px;"></div><span>_______________</span></div>
+                        <div style="display:flex; justify-content:space-between; margin-bottom:2px;"><span>Presentation</span><div style="flex-grow:1; border-bottom:1px dotted #000; margin:0 8px;"></div><span>_______________</span></div>
+                    </div>
+                    <div style="margin-bottom:8px;">
+                        <div style="font-family:'Plus Jakarta Sans',sans-serif; font-weight:800; font-size:13px; text-transform:uppercase; color:#000; border-bottom:1px solid #ccc; margin-bottom:4px; padding-bottom:2px; letter-spacing:1px;">Special Presentation</div>
+                        <div style="display:flex; justify-content:space-between; margin-bottom:2px;"><span>Presentation No.</span><div style="flex-grow:1; border-bottom:1px dotted #000; margin:0 8px;"></div><span>_______________</span></div>
+                    </div>
+                    <div style="margin-bottom:8px;">
+                        <div style="font-family:'Plus Jakarta Sans',sans-serif; font-weight:800; font-size:13px; text-transform:uppercase; color:#000; border-bottom:1px solid #ccc; margin-bottom:4px; padding-bottom:2px; letter-spacing:1px;">Public Announcements</div>
+                        <div style="font-size:13px; padding-left:10px; border-left:2px solid #000; font-style:italic;">___________________________________________________________________________</div>
+                    </div>
+                    <div style="margin-bottom:8px;">
+                        <div style="font-family:'Plus Jakarta Sans',sans-serif; font-weight:800; font-size:13px; text-transform:uppercase; color:#000; border-bottom:1px solid #ccc; margin-bottom:4px; padding-bottom:2px; letter-spacing:1px;">Closing Services</div>
+                        <div style="display:flex; justify-content:space-between; margin-bottom:2px;"><span>Closing Song</span><div style="flex-grow:1; border-bottom:1px dotted #000; margin:0 8px;"></div><span>_______________</span></div>
+                        <div style="display:flex; justify-content:space-between; margin-bottom:2px;"><span>Benediction</span><div style="flex-grow:1; border-bottom:1px dotted #000; margin:0 8px;"></div><span>_______________</span></div>
+                    </div>
+                    <div style="margin-bottom:8px;">
+                        <div style="font-family:'Plus Jakarta Sans',sans-serif; font-weight:800; font-size:13px; text-transform:uppercase; color:#000; border-bottom:1px solid #ccc; margin-bottom:4px; padding-bottom:2px; letter-spacing:1px;">Part III: Fellowship</div>
+                        <div style="text-align:center; font-size:13px;">
+                            <span><i class="fas fa-utensils"></i> Lunch</span> &nbsp; | &nbsp; 
+                            <span><i class="fas fa-camera"></i> Picture Taking</span> &nbsp; | &nbsp; 
+                            <span><i class="fas fa-users"></i> Bonding</span>
+                        </div>
+                    </div>
+                    <div style="text-align:center; margin-top:15px; padding-top:10px; border-top:1px solid #ccc;">
+                        <div style="font-size:14px; font-style:italic;">"Let everything that has breath praise the LORD."</div>
+                        <small style="font-weight:bold;">Psalm 150:6</small>
+                    </div>
+                </div>
+                <div style="margin-top:15px; padding-top:10px; border-top:1px solid #ccc; text-align:center; font-size:10px; font-weight:600;">MCB Portal Pro | Template</div>
+            `;
+
+            document.body.appendChild(tempDiv);
+
+            setTimeout(() => {
+                html2canvas(tempDiv, {
+                    scale: 4,
+                    useCORS: true,
+                    backgroundColor: '#ffffff',
+                    width: tempDiv.offsetWidth,
+                    height: tempDiv.offsetHeight,
+                    windowWidth: tempDiv.offsetWidth,
+                    windowHeight: tempDiv.offsetHeight
+                }).then(canvas => {
+                    const link = document.createElement('a');
+                    link.download = 'Blank_Sunday_Program_Template.png';
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+                    document.body.removeChild(tempDiv);
+                }).catch(err => {
+                    document.body.removeChild(tempDiv);
+                    alert('Error generating template: ' + err.message);
+                });
+            }, 600);
+        });
+
         fetchPrograms();
     })();
     </script>
