@@ -157,98 +157,98 @@
             }
         };
 
-        // ---- Download blank template (ADJUSTED TO FIT EVERYTHING) ----
+        // ---- Download blank template (READABLE FONT, EVERYTHING FITS) ----
         document.getElementById('downloadTemplateBtn').addEventListener('click', function() {
             const tempDiv = document.createElement('div');
             tempDiv.style.position = 'fixed';
             tempDiv.style.left = '-9999px';
             tempDiv.style.top = '0';
-            tempDiv.style.width = '216mm';
-            tempDiv.style.height = '279mm';
-            tempDiv.style.padding = '8mm 12mm';
+            tempDiv.style.width = '216mm';    // Width: Short bond paper
+            tempDiv.style.height = '330mm';   // Height: Long bond paper (gives more room)
+            tempDiv.style.padding = '10mm 14mm';
             tempDiv.style.boxSizing = 'border-box';
             tempDiv.style.background = 'white';
             tempDiv.style.fontFamily = 'Arial, sans-serif';
             tempDiv.style.color = '#000000';
-            tempDiv.style.fontSize = '13px';
+            tempDiv.style.fontSize = '14px';
             tempDiv.style.fontWeight = 'bold';
-            tempDiv.style.lineHeight = '1.4';
+            tempDiv.style.lineHeight = '1.5';
 
             tempDiv.innerHTML = `
-                <div style="text-align:center; margin-bottom:12px; border-bottom:2px solid #000; padding-bottom:8px;">
-                    <div style="display:flex; align-items:center; justify-content:center; gap:12px; margin-bottom:4px;">
-                        <img src="mcb.jpg" alt="MCB Logo" style="width:55px; height:55px; object-fit:cover; border-radius:50%; border:2px solid #000;" onerror="this.style.display='none'">
+                <div style="text-align:center; margin-bottom:14px; border-bottom:2px solid #000; padding-bottom:10px;">
+                    <div style="display:flex; align-items:center; justify-content:center; gap:15px; margin-bottom:6px;">
+                        <img src="mcb.jpg" alt="MCB Logo" style="width:65px; height:65px; object-fit:cover; border-radius:50%; border:2px solid #000;" onerror="this.style.display='none'">
                         <div>
-                            <h1 style="font-family:'Cinzel',serif; font-size:18px; color:#000; margin:0; font-weight:bold;">Mobilization Church Balilihan</h1>
-                            <div style="font-family:'Plus Jakarta Sans',sans-serif; font-size:10px; font-weight:600; color:#000; text-transform:uppercase; letter-spacing:1px;">Saling, Balilihan, Bohol</div>
+                            <h1 style="font-family:'Cinzel',serif; font-size:22px; color:#000; margin:0; font-weight:bold;">Mobilization Church Balilihan</h1>
+                            <div style="font-family:'Plus Jakarta Sans',sans-serif; font-size:11px; font-weight:600; color:#000; text-transform:uppercase; letter-spacing:2px;">Saling, Balilihan, Bohol</div>
                         </div>
                     </div>
-                    <h2 style="font-family:'Cinzel',serif; font-size:17px; color:#000; margin-top:8px; letter-spacing:2px; font-weight:800;">SUNDAY PROGRAM</h2>
-                    <div style="display:flex; justify-content:space-between; margin-top:8px; font-family:'Plus Jakarta Sans',sans-serif; font-weight:800; font-size:12px; color:#000;">
+                    <h2 style="font-family:'Cinzel',serif; font-size:20px; color:#000; margin-top:10px; letter-spacing:3px; font-weight:800;">SUNDAY PROGRAM</h2>
+                    <div style="display:flex; justify-content:space-between; margin-top:10px; font-family:'Plus Jakarta Sans',sans-serif; font-weight:800; font-size:13px; color:#000;">
                         <div>MC: ________________________</div>
                         <div>DATE: ________________________</div>
                     </div>
                 </div>
 
                 <div>
-                    <div style="margin-bottom:5px;">
-                        <div style="font-weight:800; font-size:12px; text-transform:uppercase; color:#000; border-bottom:1px solid #ccc; margin-bottom:2px; padding-bottom:1px;">Part I: Sunday School</div>
-                        <div style="display:flex; justify-content:space-between; margin-bottom:1px;"><span>Teacher</span><div style="flex-grow:1; border-bottom:1px dotted #000; margin:0 6px;"></div><span>_______________</span></div>
+                    <div style="margin-bottom:6px;">
+                        <div style="font-weight:800; font-size:14px; text-transform:uppercase; color:#000; border-bottom:1px solid #ccc; margin-bottom:3px; padding-bottom:2px;">Part I: Sunday School</div>
+                        <div style="display:flex; justify-content:space-between; margin-bottom:2px;"><span>Teacher</span><div style="flex-grow:1; border-bottom:1px dotted #000; margin:0 8px;"></div><span>_______________</span></div>
                     </div>
-                    <div style="margin-bottom:5px;">
-                        <div style="font-weight:800; font-size:12px; text-transform:uppercase; color:#000; border-bottom:1px solid #ccc; margin-bottom:2px; padding-bottom:1px;">Part II: Sunday Service</div>
-                        <div style="text-align:center; margin-bottom:2px;"><span>Welcome Address</span><br><span>_______________</span></div>
-                        <div style="text-align:center; margin-bottom:2px;"><span>Testimony</span><br><span>_______________</span></div>
-                        <div style="display:flex; justify-content:space-between; margin-bottom:1px;"><span>Scripture</span><div style="flex-grow:1; border-bottom:1px dotted #000; margin:0 6px;"></div><span>_______________</span></div>
-                        <div style="display:flex; justify-content:space-between; margin-bottom:1px;"><span>Opening Song</span><div style="flex-grow:1; border-bottom:1px dotted #000; margin:0 6px;"></div><span>_______________</span></div>
-                        <div style="display:flex; justify-content:space-between; margin-bottom:1px;"><span>Opening Prayer</span><div style="flex-grow:1; border-bottom:1px dotted #000; margin:0 6px;"></div><span>_______________</span></div>
+                    <div style="margin-bottom:6px;">
+                        <div style="font-weight:800; font-size:14px; text-transform:uppercase; color:#000; border-bottom:1px solid #ccc; margin-bottom:3px; padding-bottom:2px;">Part II: Sunday Service</div>
+                        <div style="text-align:center; margin-bottom:3px;"><span>Welcome Address</span><br><span>_______________</span></div>
+                        <div style="text-align:center; margin-bottom:3px;"><span>Testimony</span><br><span>_______________</span></div>
+                        <div style="display:flex; justify-content:space-between; margin-bottom:2px;"><span>Scripture</span><div style="flex-grow:1; border-bottom:1px dotted #000; margin:0 8px;"></div><span>_______________</span></div>
+                        <div style="display:flex; justify-content:space-between; margin-bottom:2px;"><span>Opening Song</span><div style="flex-grow:1; border-bottom:1px dotted #000; margin:0 8px;"></div><span>_______________</span></div>
+                        <div style="display:flex; justify-content:space-between; margin-bottom:2px;"><span>Opening Prayer</span><div style="flex-grow:1; border-bottom:1px dotted #000; margin:0 8px;"></div><span>_______________</span></div>
                     </div>
-                    <div style="margin-bottom:5px;">
-                        <div style="font-weight:800; font-size:12px; text-transform:uppercase; color:#000; border-bottom:1px solid #ccc; margin-bottom:2px; padding-bottom:1px;">Praise and Worship</div>
-                        <div style="display:flex; justify-content:space-between; margin-bottom:1px;"><span>Worship Leader</span><div style="flex-grow:1; border-bottom:1px dotted #000; margin:0 6px;"></div><span>_______________</span></div>
+                    <div style="margin-bottom:6px;">
+                        <div style="font-weight:800; font-size:14px; text-transform:uppercase; color:#000; border-bottom:1px solid #ccc; margin-bottom:3px; padding-bottom:2px;">Praise and Worship</div>
+                        <div style="display:flex; justify-content:space-between; margin-bottom:2px;"><span>Worship Leader</span><div style="flex-grow:1; border-bottom:1px dotted #000; margin:0 8px;"></div><span>_______________</span></div>
                     </div>
-                    <div style="margin-bottom:5px; text-align:center;">
-                        <div style="text-align:left; font-weight:800; font-size:12px; text-transform:uppercase; color:#000; border-bottom:1px solid #ccc; margin-bottom:2px; padding-bottom:1px;">The Word of God</div>
-                        <span style="font-size:10px; color:#000; text-transform:uppercase;">Host Pastor</span>
-                        <h2 style="font-family:'Playfair Display',serif; font-weight:700; font-size:16px; color:#000; margin:2px 0;">_______________</h2>
+                    <div style="margin-bottom:6px; text-align:center;">
+                        <div style="text-align:left; font-weight:800; font-size:14px; text-transform:uppercase; color:#000; border-bottom:1px solid #ccc; margin-bottom:3px; padding-bottom:2px;">The Word of God</div>
+                        <span style="font-size:11px; color:#000; text-transform:uppercase;">Host Pastor</span>
+                        <h2 style="font-family:'Playfair Display',serif; font-weight:700; font-size:18px; color:#000; margin:4px 0;">_______________</h2>
                     </div>
-                    <div style="margin-bottom:5px; border:1px dashed #000; padding:6px; border-radius:6px; text-align:center;">
-                        <div style="text-align:left; font-weight:800; font-size:12px; text-transform:uppercase; color:#000; border:none; margin-bottom:2px;">The Holy Communion</div>
-                        <p style="margin:0; font-size:12px; font-style:italic;">"Do this in remembrance of Me."</p>
-                        <span style="font-size:12px; color:#000; font-weight:bold;">Officiating: _______________</span>
+                    <div style="margin-bottom:6px; border:1px dashed #000; padding:8px; border-radius:8px; text-align:center;">
+                        <div style="text-align:left; font-weight:800; font-size:14px; text-transform:uppercase; color:#000; border:none; margin-bottom:4px;">The Holy Communion</div>
+                        <p style="margin:0; font-size:13px; font-style:italic;">"Do this in remembrance of Me."</p>
+                        <span style="font-size:13px; color:#000; font-weight:bold;">Officiating: _______________</span>
                     </div>
-                    <div style="margin-bottom:5px;">
-                        <div style="font-weight:800; font-size:12px; text-transform:uppercase; color:#000; border-bottom:1px solid #ccc; margin-bottom:2px; padding-bottom:1px;">Tithes and Offering</div>
-                        <div style="display:flex; justify-content:space-between; margin-bottom:1px;"><span>Short Exhortation / Prayer</span><div style="flex-grow:1; border-bottom:1px dotted #000; margin:0 6px;"></div><span>_______________</span></div>
-                        <div style="display:flex; justify-content:space-between; margin-bottom:1px;"><span>Presentation</span><div style="flex-grow:1; border-bottom:1px dotted #000; margin:0 6px;"></div><span>_______________</span></div>
+                    <div style="margin-bottom:6px;">
+                        <div style="font-weight:800; font-size:14px; text-transform:uppercase; color:#000; border-bottom:1px solid #ccc; margin-bottom:3px; padding-bottom:2px;">Tithes and Offering</div>
+                        <div style="display:flex; justify-content:space-between; margin-bottom:2px;"><span>Short Exhortation / Prayer</span><div style="flex-grow:1; border-bottom:1px dotted #000; margin:0 8px;"></div><span>_______________</span></div>
+                        <div style="display:flex; justify-content:space-between; margin-bottom:2px;"><span>Presentation</span><div style="flex-grow:1; border-bottom:1px dotted #000; margin:0 8px;"></div><span>_______________</span></div>
                     </div>
-                    <div style="margin-bottom:5px;">
-                        <div style="font-weight:800; font-size:12px; text-transform:uppercase; color:#000; border-bottom:1px solid #ccc; margin-bottom:2px; padding-bottom:1px;">Special Presentation</div>
-                        <div style="display:flex; justify-content:space-between; margin-bottom:1px;"><span>Presentation No.</span><div style="flex-grow:1; border-bottom:1px dotted #000; margin:0 6px;"></div><span>_______________</span></div>
+                    <div style="margin-bottom:6px;">
+                        <div style="font-weight:800; font-size:14px; text-transform:uppercase; color:#000; border-bottom:1px solid #ccc; margin-bottom:3px; padding-bottom:2px;">Special Presentation</div>
+                        <div style="display:flex; justify-content:space-between; margin-bottom:2px;"><span>Presentation No.</span><div style="flex-grow:1; border-bottom:1px dotted #000; margin:0 8px;"></div><span>_______________</span></div>
                     </div>
-                    <div style="margin-bottom:5px;">
-                        <div style="font-weight:800; font-size:12px; text-transform:uppercase; color:#000; border-bottom:1px solid #ccc; margin-bottom:2px; padding-bottom:1px;">Public Announcements</div>
-                        <div style="font-size:12px; padding-left:8px; border-left:2px solid #000; font-style:italic;">___________________________________________________________</div>
+                    <div style="margin-bottom:6px;">
+                        <div style="font-weight:800; font-size:14px; text-transform:uppercase; color:#000; border-bottom:1px solid #ccc; margin-bottom:3px; padding-bottom:2px;">Public Announcements</div>
+                        <div style="font-size:13px; padding-left:10px; border-left:2px solid #000; font-style:italic;">___________________________________________________________________________</div>
                     </div>
-                    <div style="margin-bottom:5px;">
-                        <div style="font-weight:800; font-size:12px; text-transform:uppercase; color:#000; border-bottom:1px solid #ccc; margin-bottom:2px; padding-bottom:1px;">Closing Services</div>
-                        <div style="display:flex; justify-content:space-between; margin-bottom:1px;"><span>Closing Song</span><div style="flex-grow:1; border-bottom:1px dotted #000; margin:0 6px;"></div><span>_______________</span></div>
-                        <div style="display:flex; justify-content:space-between; margin-bottom:1px;"><span>Benediction</span><div style="flex-grow:1; border-bottom:1px dotted #000; margin:0 6px;"></div><span>_______________</span></div>
+                    <div style="margin-bottom:6px;">
+                        <div style="font-weight:800; font-size:14px; text-transform:uppercase; color:#000; border-bottom:1px solid #ccc; margin-bottom:3px; padding-bottom:2px;">Closing Services</div>
+                        <div style="display:flex; justify-content:space-between; margin-bottom:2px;"><span>Closing Song</span><div style="flex-grow:1; border-bottom:1px dotted #000; margin:0 8px;"></div><span>_______________</span></div>
+                        <div style="display:flex; justify-content:space-between; margin-bottom:2px;"><span>Benediction</span><div style="flex-grow:1; border-bottom:1px dotted #000; margin:0 8px;"></div><span>_______________</span></div>
                     </div>
-                    <div style="margin-bottom:5px;">
-                        <div style="font-weight:800; font-size:12px; text-transform:uppercase; color:#000; border-bottom:1px solid #ccc; margin-bottom:2px; padding-bottom:1px;">Part III: Fellowship</div>
-                        <div style="text-align:center; font-size:12px;">
+                    <div style="margin-bottom:6px;">
+                        <div style="font-weight:800; font-size:14px; text-transform:uppercase; color:#000; border-bottom:1px solid #ccc; margin-bottom:3px; padding-bottom:2px;">Part III: Fellowship</div>
+                        <div style="text-align:center; font-size:13px;">
                             <span><i class="fas fa-utensils"></i> Lunch</span> &nbsp; | &nbsp; 
                             <span><i class="fas fa-camera"></i> Picture Taking</span> &nbsp; | &nbsp; 
                             <span><i class="fas fa-users"></i> Bonding</span>
                         </div>
                     </div>
-                    <div style="text-align:center; margin-top:8px; padding-top:6px; border-top:1px solid #ccc;">
-                        <div style="font-size:13px; font-style:italic;">"Let everything that has breath praise the LORD."</div>
+                    <div style="text-align:center; margin-top:10px; padding-top:8px; border-top:1px solid #ccc;">
+                        <div style="font-size:14px; font-style:italic;">"Let everything that has breath praise the LORD."</div>
                         <small style="font-weight:bold;">Psalm 150:6</small>
                     </div>
                 </div>
-                <div style="margin-top:8px; padding-top:6px; border-top:1px solid #ccc; text-align:center; font-size:9px; font-weight:600;">MCB Portal Pro | Template</div>
+                <div style="margin-top:10px; padding-top:8px; border-top:1px solid #ccc; text-align:center; font-size:10px; font-weight:600;">MCB Portal Pro | Template</div>
             `;
 
             document.body.appendChild(tempDiv);
