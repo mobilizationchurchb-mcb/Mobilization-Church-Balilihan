@@ -1,287 +1,36 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Program List – MCB</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
-    </script>
-    <script src="https://cdn.tailwindcss.com">
-    </script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js">
-    </script>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Inter:wght@400;600&family=Playfair+Display:ital,wght@0,700;1,400&family=Plus+Jakarta+Sans:wght@700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Program List - MCB</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Poppins', sans-serif;
-        }
-        @media (max-width:767px) {
+        body { font-family: 'Poppins', sans-serif; }
+        /* Full‑screen on mobile: remove the navbar’s inner padding */
+        @media (max-width: 767px) {
             #main-content {
                 padding: 0 !important;
             }
-        }
-
-        /* ===== Template styles – PORTRAIT, full bond paper ===== */
-        .template-wrapper {
-            font-family: 'Inter', 'Poppins', sans-serif;
-            color: #1e293b;
-            background: #ffffff;
-            padding: 12mm 10mm 10mm 10mm;
-            box-sizing: border-box;
-            width: 210mm;
-            min-height: 297mm;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .bulletin-header {
-            text-align: center;
-            border-bottom: 2px solid #1e293b;
-            padding-bottom: 10px;
-            margin-bottom: 12px;
-        }
-        .header-main-content {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 16px;
-            flex-wrap: wrap;
-        }
-        .church-logo {
-            width: 70px;
-            height: 70px;
-            object-fit: cover;
-            border-radius: 50%;
-            border: 2px solid #e2e8f0;
-        }
-        .church-main-title {
-            font-family: 'Cinzel', serif;
-            font-size: 22px;
-            color: #1e293b;
-            margin: 0;
-            line-height: 1.2;
-        }
-        .church-sub-title {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            font-size: 11px;
-            font-weight: 600;
-            color: #64748b;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-        .program-type-title {
-            font-family: 'Cinzel', serif;
-            font-size: 20px;
-            color: #4f46e5;
-            margin-top: 6px;
-            letter-spacing: 3px;
-            font-weight: 800;
-        }
-        .header-meta {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 8px;
-            padding: 2px 0;
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            flex-wrap: wrap;
-            gap: 6px;
-        }
-        .meta-mc,
-        .meta-date {
-            font-weight: 800;
-            font-size: 11px;
-            color: #475569;
-        }
-        .meta-mc span,
-        .meta-date span {
-            font-weight: 400;
-            color: #94a3b8;
-        }
-
-        /* content flow */
-        .program-flow {
-            flex: 1;
-        }
-        .b-section {
-            margin-bottom: 6px;
-        }
-        .b-title {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            font-weight: 800;
-            font-size: 11px;
-            text-transform: uppercase;
-            color: #4f46e5;
-            border-bottom: 1px solid #f1f5f9;
-            margin-bottom: 2px;
-            padding-bottom: 1px;
-            letter-spacing: 1px;
-        }
-        .b-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: baseline;
-            margin-bottom: 1px;
-            flex-wrap: wrap;
-            gap: 4px;
-        }
-        .b-row-center {
-            display: block;
-            text-align: center;
-            margin-bottom: 2px;
-        }
-        .b-dotted {
-            flex-grow: 1;
-            border-bottom: 1px dotted #cbd5e1;
-            margin: 0 6px;
-            opacity: 0.5;
-            min-width: 20px;
-        }
-        .b-label {
-            font-weight: 600;
-            font-size: 11px;
-            color: #475569;
-            white-space: nowrap;
-        }
-        .b-value {
-            font-weight: 500;
-            text-align: right;
-            font-size: 11px;
-            color: #94a3b8;
-            min-width: 40px;
-        }
-        .b-value-empty {
-            min-width: 60px;
-            display: inline-block;
-        }
-        .communion-box {
-            border: 1px dashed #cbd5e1;
-            padding: 4px 10px;
-            border-radius: 6px;
-            background: #fafafa;
-            text-align: center;
-        }
-        .communion-box .b-title {
-            text-align: left;
-            border: none;
-            margin-bottom: 0;
-        }
-        .bible-verse-section {
-            text-align: center;
-            margin-top: 10px;
-            padding-top: 8px;
-            border-top: 1px solid #f1f5f9;
-        }
-        .bulletin-footer {
-            margin-top: 10px;
-            padding-top: 6px;
-            border-top: 1px solid #f1f5f9;
-            text-align: center;
-            font-size: 8px;
-            color: #94a3b8;
-            font-weight: 600;
-        }
-        .speaker-highlight {
-            font-family: 'Playfair Display', serif;
-            font-weight: 700;
-            font-size: 20px;
-            color: #4f46e5;
-            margin: 0;
-            line-height: 1.3;
-        }
-        .fellowship-items {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            font-size: 11px;
-            color: #475569;
-            flex-wrap: wrap;
-        }
-        .fellowship-items span i {
-            margin-right: 4px;
-        }
-        .welcome-sub {
-            padding-left: 14px;
-            font-size: 11px;
-            color: #94a3b8;
-            margin-bottom: 0px;
-            line-height: 1.5;
-        }
-        .testimony-line {
-            padding-left: 14px;
-            font-size: 11px;
-            color: #94a3b8;
-            line-height: 1.5;
-        }
-        .announcement-blank {
-            font-size: 11px;
-            padding-left: 10px;
-            border-left: 2px solid #e2e8f0;
-            color: #94a3b8;
-            min-height: 1.4em;
-            line-height: 1.5;
-        }
-        .communion-officiating {
-            font-size: 11px;
-            color: #94a3b8;
-            font-weight: 600;
-        }
-        .communion-verse {
-            font-size: 11px;
-            color: #94a3b8;
-            font-style: italic;
-            margin-bottom: 2px;
-        }
-        .host-pastor-label {
-            font-size: 9px;
-            color: #94a3b8;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-weight: 600;
-        }
-        .service-sub-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: baseline;
-            margin-bottom: 1px;
-            flex-wrap: wrap;
-            gap: 4px;
-            padding-left: 4px;
-        }
-        .service-sub-row .b-label {
-            font-size: 10.5px;
-        }
-        .service-sub-row .b-dotted {
-            margin: 0 4px;
-        }
-        .service-sub-row .b-value {
-            font-size: 10.5px;
-        }
-        /* smaller spacing for compactness */
-        .compact-mb {
-            margin-bottom: 2px;
-        }
-        .mt-1 {
-            margin-top: 2px;
         }
     </style>
 </head>
 <body class="bg-gradient-to-br from-blue-50 to-blue-100 min-h-screen">
 
-    <!-- ===== PAGE CONTENT ===== -->
+    <!-- Content will be wrapped inside #main-content by program_navbar.js -->
     <div class="w-full px-2 py-6 md:px-6">
         <div class="max-w-7xl mx-auto">
-
             <!-- Header -->
             <div class="mb-8">
                 <h1 class="text-3xl font-bold text-blue-700">Program</h1>
-                <p class="text-sm text-blue-400 mt-2">Manage all your created Sunday programs. You can view, edit, delete or download a blank template.</p>
+                <p class="text-sm text-blue-400 mt-2">Manage all your created Sunday programs. You can view, edit, or delete any entry.</p>
             </div>
 
-            <!-- Toolbar -->
+            <!-- Filter bar – aligned left on all screens -->
             <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
-                <div class="flex flex-col sm:flex-row gap-4 items-start justify-between">
+                <div class="flex flex-col sm:flex-row gap-4 items-start">
                     <div class="w-full sm:w-64">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Filter by Month</label>
                         <select id="monthFilter" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
@@ -300,9 +49,6 @@
                             <option value="12">December</option>
                         </select>
                     </div>
-                    <button id="downloadTemplateBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-6 py-2.5 rounded-lg transition flex items-center gap-2 shadow-sm">
-                        <i class="fas fa-download"></i> Download Blank Template
-                    </button>
                 </div>
             </div>
 
@@ -319,299 +65,124 @@
                             </tr>
                         </thead>
                         <tbody id="programTableBody" class="bg-white divide-y divide-gray-200">
-                            <tr><td colspan="4" class="px-6 py-4 text-center text-sm text-gray-400">Loading…</td></tr>
+                            <tr>
+                                <td colspan="4" class="px-6 py-4 text-center text-sm text-gray-400">Loading...</td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
             </div>
-
         </div>
     </div>
 
-    <script src="program_navbar.js">
-    </script>
+    <!-- program_navbar.js must be in the same folder -->
+    <script src="program_navbar.js"></script>
 
     <script>
-        (function() {
-            const SUPABASE_URL = 'https://mjpahhjaefflposesygk.supabase.co';
-            const SUPABASE_ANON_KEY =
-                'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1qcGFoaGphZWZmbHBvc2VzeWdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ4NjQzMDMsImV4cCI6MjEwMDQ0MDMwM30.cNMzs1TxHKPbWKtY9xZD6W29nSU1ocvm8n5pjE68d1g';
+    (function() {
+        const SUPABASE_URL = 'https://mjpahhjaefflposesygk.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1qcGFoaGphZWZmbHBvc2VzeWdrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ4NjQzMDMsImV4cCI6MjEwMDQ0MDMwM30.cNMzs1TxHKPbWKtY9xZD6W29nSU1ocvm8n5pjE68d1g';
 
-            const memberId = localStorage.getItem('memberId');
-            const isLoggedIn = localStorage.getItem('memberLoggedIn') === 'true';
-            const role = localStorage.getItem('memberRole');
-            if (!isLoggedIn || !memberId || role !== 'program') {
-                window.location.href = '../portal_login.html';
+        // Session
+        const memberId = localStorage.getItem('memberId');
+        const isLoggedIn = localStorage.getItem('memberLoggedIn') === 'true';
+        const role = localStorage.getItem('memberRole');
+
+        if (!isLoggedIn || !memberId || role !== 'program') {
+            window.location.href = '../portal_login.html';
+            return;
+        }
+
+        // Supabase client with RLS header
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+            global: { headers: { 'x-member-id': memberId } }
+        });
+
+        const tbody = document.getElementById('programTableBody');
+        const monthFilter = document.getElementById('monthFilter');
+        let allPrograms = [];
+
+        // Format date helper
+        function formatDate(dateStr) {
+            if (!dateStr) return '';
+            const d = new Date(dateStr);
+            return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+        }
+
+        // Fetch programs
+        async function fetchPrograms() {
+            tbody.innerHTML = `<tr><td colspan="4" class="px-6 py-4 text-center text-sm text-gray-400">Loading...</td></tr>`;
+            const { data, error } = await supabase
+                .from('sunday_programs')
+                .select('*')
+                .order('program_date', { ascending: false });
+
+            if (error) {
+                tbody.innerHTML = `<tr><td colspan="4" class="px-6 py-4 text-center text-sm text-red-500">Error loading programs</td></tr>`;
+                console.error(error);
+                return;
+            }
+            allPrograms = data || [];
+            renderTable(allPrograms);
+        }
+
+        function renderTable(programs) {
+            if (programs.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="px-6 py-4 text-center text-sm text-gray-400">No programs found.</td></tr>`;
                 return;
             }
 
-            const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-                global: { headers: { 'x-member-id': memberId } }
-            });
-            const tbody = document.getElementById('programTableBody');
-            const monthFilter = document.getElementById('monthFilter');
-            let allPrograms = [];
-
-            function formatDate(dateStr) {
-                if (!dateStr) return '';
-                const d = new Date(dateStr);
-                return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-            }
-
-            async function fetchPrograms() {
-                tbody.innerHTML =
-                `<tr><td colspan="4" class="px-6 py-4 text-center text-sm text-gray-400">Loading…</td></tr>`;
-                const { data, error } = await supabase
-                    .from('sunday_programs')
-                    .select('*')
-                    .order('program_date', { ascending: false });
-                if (error) {
-                    tbody.innerHTML =
-                        `<tr><td colspan="4" class="px-6 py-4 text-center text-sm text-red-500">Error loading programs</td></tr>`;
-                    return;
-                }
-                allPrograms = data || [];
-                renderTable(allPrograms);
-            }
-
-            function renderTable(programs) {
-                if (programs.length === 0) {
-                    tbody.innerHTML =
-                        `<tr><td colspan="4" class="px-6 py-4 text-center text-sm text-gray-400">No programs found.</td></tr>`;
-                    return;
-                }
-                tbody.innerHTML = programs.map(prog => `
-                        <tr class="hover:bg-gray-50 transition">
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${prog.mc_name || '—'}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${formatDate(prog.program_date)}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${prog.pastor || '—'}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <div class="flex gap-2 flex-wrap">
-                                    <a href="view.html?id=${prog.id}" class="text-blue-600 hover:text-blue-800 bg-blue-50 px-3 py-1 rounded-lg transition">👁️ View</a>
-                                    <a href="edit_program.html?id=${prog.id}" class="text-amber-600 hover:text-amber-800 bg-amber-50 px-3 py-1 rounded-lg transition">✏️ Edit</a>
-                                    <button onclick="deleteProgram('${prog.id}')" class="text-red-600 hover:text-red-800 bg-red-50 px-3 py-1 rounded-lg transition">🗑️ Delete</button>
-                                </div>
-                            </td>
-                        </tr>
-                    `).join('');
-            }
-
-            monthFilter.addEventListener('change', function() {
-                const month = this.value;
-                if (!month) { renderTable(allPrograms); return; }
-                const filtered = allPrograms.filter(prog => {
-                    if (!prog.program_date) return false;
-                    const progMonth = new Date(prog.program_date).getMonth() + 1;
-                    return progMonth === parseInt(month);
-                });
-                renderTable(filtered);
-            });
-
-            window.deleteProgram = async function(programId) {
-                if (!confirm('Are you sure you want to delete this program? This action cannot be undone.')) return;
-                const { error } = await supabase
-                    .from('sunday_programs')
-                    .delete()
-                    .eq('id', programId);
-                if (error) { alert('Error deleting program: ' + error.message); } else {
-                    alert('Program deleted successfully.');
-                    fetchPrograms();
-                }
-            };
-
-            // ===== DOWNLOAD BLANK TEMPLATE – PORTRAIT, FULL PAGE =====
-            document.getElementById('downloadTemplateBtn').addEventListener('click', function() {
-                const tempContainer = document.createElement('div');
-                tempContainer.style.position = 'fixed';
-                tempContainer.style.left = '-9999px';
-                tempContainer.style.top = '0';
-                tempContainer.style.width = '210mm';
-                tempContainer.style.height = '297mm';
-                tempContainer.style.background = '#ffffff';
-                tempContainer.style.overflow = 'hidden';
-
-                // ─── FULL PORTRAIT TEMPLATE – all sections, blank ───
-                tempContainer.innerHTML = `
-                        <div class="template-wrapper">
-
-                            <!-- HEADER -->
-                            <div class="bulletin-header">
-                                <div class="header-main-content">
-                                    <img src="mcb.jpg" alt="MCB Logo" class="church-logo" onerror="this.style.display='none'">
-                                    <div>
-                                        <div class="church-main-title">Mobilization Church Balilihan</div>
-                                        <div class="church-sub-title">Saling, Balilihan, Bohol</div>
-                                    </div>
-                                </div>
-                                <div class="program-type-title">SUNDAY PROGRAM</div>
-                                <div class="header-meta">
-                                    <div class="meta-mc">MC: &nbsp;<span>___________________________</span></div>
-                                    <div class="meta-date">DATE: &nbsp;<span>_________________________</span></div>
-                                </div>
-                            </div>
-
-                            <!-- CONTENT -->
-                            <div class="program-flow">
-
-                                <!-- PART I -->
-                                <div class="b-section">
-                                    <div class="b-title">Part I: Sunday School</div>
-                                    <div class="b-row">
-                                        <span class="b-label">Teacher</span>
-                                        <div class="b-dotted"></div>
-                                        <span class="b-value">&nbsp;</span>
-                                    </div>
-                                </div>
-
-                                <!-- PART II -->
-                                <div class="b-section">
-                                    <div class="b-title">Part II: Sunday Service</div>
-
-                                    <div class="welcome-sub">Welcome Address</div>
-                                    <div class="welcome-sub" style="padding-left:20px;">________________________</div>
-                                    <div class="welcome-sub" style="padding-left:20px;">________________________</div>
-
-                                    <div class="testimony-line" style="margin-top:2px;">Testimony</div>
-                                    <div class="testimony-line" style="padding-left:20px;">________________________</div>
-                                    <div class="testimony-line" style="padding-left:20px;">________________________</div>
-
-                                    <div class="service-sub-row" style="margin-top:2px;">
-                                        <span class="b-label">Scripture</span>
-                                        <div class="b-dotted"></div>
-                                        <span class="b-value">&nbsp;</span>
-                                    </div>
-                                    <div class="service-sub-row">
-                                        <span class="b-label">Opening Song</span>
-                                        <div class="b-dotted"></div>
-                                        <span class="b-value">&nbsp;</span>
-                                    </div>
-                                    <div class="service-sub-row">
-                                        <span class="b-label">Opening Prayer</span>
-                                        <div class="b-dotted"></div>
-                                        <span class="b-value">&nbsp;</span>
-                                    </div>
-                                </div>
-
-                                <!-- PRAISE & WORSHIP -->
-                                <div class="b-section">
-                                    <div class="b-title">Praise and Worship</div>
-                                    <div class="service-sub-row">
-                                        <span class="b-label">Worship Leader</span>
-                                        <div class="b-dotted"></div>
-                                        <span class="b-value">&nbsp;</span>
-                                    </div>
-                                </div>
-
-                                <!-- THE WORD OF GOD -->
-                                <div class="b-section text-center">
-                                    <div class="b-title" style="text-align:left;">The Word of God</div>
-                                    <div class="host-pastor-label">HOST PASTOR</div>
-                                    <div class="speaker-highlight">&nbsp;</div>
-                                </div>
-
-                                <!-- HOLY COMMUNION -->
-                                <div class="b-section communion-box">
-                                    <div class="b-title" style="text-align:left;border:none;margin-bottom:0;">The Holy Communion</div>
-                                    <div class="communion-verse">"Do this in remembrance of Me."</div>
-                                    <div class="communion-officiating">Officiating: &nbsp;________________________</div>
-                                </div>
-
-                                <!-- TITHES & OFFERING -->
-                                <div class="b-section">
-                                    <div class="b-title">Tithes and Offering</div>
-                                    <div class="service-sub-row">
-                                        <span class="b-label">Presentation</span>
-                                        <div class="b-dotted"></div>
-                                        <span class="b-value">&nbsp;</span>
-                                    </div>
-                                    <div class="service-sub-row">
-                                        <span class="b-label">Prayer &amp; Exhortation</span>
-                                        <div class="b-dotted"></div>
-                                        <span class="b-value">&nbsp;</span>
-                                    </div>
-                                </div>
-
-                                <!-- PUBLIC ANNOUNCEMENTS -->
-                                <div class="b-section">
-                                    <div class="b-title">Public Announcements</div>
-                                    <div class="service-sub-row">
-                                        <span class="b-label">MC</span>
-                                        <div class="b-dotted"></div>
-                                        <span class="b-value">&nbsp;</span>
-                                    </div>
-                                    <div class="announcement-blank" style="margin-top:2px;">&nbsp;</div>
-                                </div>
-
-                                <!-- CLOSING SERVICES -->
-                                <div class="b-section">
-                                    <div class="b-title">Closing Services</div>
-                                    <div class="service-sub-row">
-                                        <span class="b-label">Closing Song</span>
-                                        <div class="b-dotted"></div>
-                                        <span class="b-value">&nbsp;</span>
-                                    </div>
-                                    <div class="service-sub-row">
-                                        <span class="b-label">Benediction</span>
-                                        <div class="b-dotted"></div>
-                                        <span class="b-value">&nbsp;</span>
-                                    </div>
-                                </div>
-
-                                <!-- PART III: FELLOWSHIP -->
-                                <div class="b-section">
-                                    <div class="b-title">Part III: Fellowship</div>
-                                    <div class="fellowship-items">
-                                        <span><i class="fas fa-utensils"></i> Lunch</span>
-                                        <span><i class="fas fa-camera"></i> Picture Taking</span>
-                                        <span><i class="fas fa-users"></i> Bonding</span>
-                                    </div>
-                                </div>
-
-                                <!-- BIBLE VERSE -->
-                                <div class="bible-verse-section">
-                                    <div style="font-size:11px;color:#475569;font-style:italic;">"Let everything that has breath praise the LORD."</div>
-                                    <div style="font-size:10px;font-weight:700;color:#4f46e5;">Psalm 150:6</div>
-                                </div>
-
-                            </div>
-
-                            <div class="bulletin-footer">MCB Portal Pro &bull; Template</div>
+            tbody.innerHTML = programs.map(prog => `
+                <tr class="hover:bg-gray-50 transition">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${prog.mc_name || '—'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${formatDate(prog.program_date)}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">${prog.pastor || '—'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <div class="flex gap-2">
+                            <a href="view.html?id=${prog.id}" class="text-blue-600 hover:text-blue-800 bg-blue-50 px-3 py-1 rounded-lg transition">👁️ View</a>
+                            <a href="edit_program.html?id=${prog.id}" class="text-amber-600 hover:text-amber-800 bg-amber-50 px-3 py-1 rounded-lg transition">✏️ Edit</a>
+                            <button onclick="deleteProgram('${prog.id}')" class="text-red-600 hover:text-red-800 bg-red-50 px-3 py-1 rounded-lg transition">🗑️ Delete</button>
                         </div>
-                    `;
+                    </td>
+                </tr>
+            `).join('');
+        }
 
-                document.body.appendChild(tempContainer);
-
-                // Give browser time to render
-                setTimeout(() => {
-                    const wrapper = tempContainer.querySelector('.template-wrapper');
-                    html2canvas(wrapper, {
-                        scale: 3,
-                        useCORS: true,
-                        backgroundColor: '#ffffff',
-                        width: 210,
-                        height: 297,
-                        windowWidth: 210,
-                        windowHeight: 297,
-                        logging: false,
-                        onclone: function(doc) {
-                            // ensure all fonts are loaded
-                        }
-                    }).then(canvas => {
-                        const link = document.createElement('a');
-                        link.download = 'Blank_Sunday_Program_Portrait.png';
-                        link.href = canvas.toDataURL('image/png');
-                        link.click();
-                        document.body.removeChild(tempContainer);
-                    }).catch(err => {
-                        document.body.removeChild(tempContainer);
-                        alert('Error generating template: ' + err.message);
-                    });
-                }, 600);
+        // Filter by month
+        monthFilter.addEventListener('change', function() {
+            const month = this.value;
+            if (!month) {
+                renderTable(allPrograms);
+                return;
+            }
+            const filtered = allPrograms.filter(prog => {
+                if (!prog.program_date) return false;
+                const progMonth = new Date(prog.program_date).getMonth() + 1; // JavaScript months 0-11
+                return progMonth === parseInt(month);
             });
+            renderTable(filtered);
+        });
 
-            fetchPrograms();
-        })();
+        // Delete function (exposed globally)
+        window.deleteProgram = async function(programId) {
+            if (!confirm('Are you sure you want to delete this program? This action cannot be undone.')) return;
+
+            const { error } = await supabase
+                .from('sunday_programs')
+                .delete()
+                .eq('id', programId);
+
+            if (error) {
+                alert('Error deleting program: ' + error.message);
+            } else {
+                alert('Program deleted successfully.');
+                fetchPrograms(); // refresh
+            }
+        };
+
+        // Initial load
+        fetchPrograms();
+    })();
     </script>
-
 </body>
 </html>
